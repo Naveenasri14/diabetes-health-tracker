@@ -1,0 +1,118 @@
+
+<h2>Glucose Records</h2>
+<h3>Glucose Trend</h3>
+<canvas id="glucoseChart"></canvas>
+
+<a href="{% url 'add_record' %}">Add Glucose</a>
+
+<table border="1">
+<tr>
+    <th>Blood Sugar</th>
+    <th>Meal</th>
+    <th>Medication</th>
+    <th>Exercise</th>
+    <th>Date</th>
+</tr>
+
+{% for record in glucose_records %}
+<tr>
+    <td>{{ record.blood_sugar }}</td>
+    <td>{{ record.meal }}</td>
+    <td>{{ record.medication }}</td>
+    <td>{{ record.exercise }}</td>
+    <td>{{ record.date }}</td>
+</tr>
+{% endfor %}
+</table>
+
+
+<hr>
+
+<h2>Blood Pressure Records</h2>
+<h3>BP Trend</h3>
+<canvas id="bpChart"></canvas>
+
+<a href="{% url 'add_bp' %}">Add BP</a>
+
+<table border="1">
+<tr>
+    <th>Systolic</th>
+    <th>Diastolic</th>
+    <th>Pulse</th>
+    <th>Date</th>
+</tr>
+
+{% for bp in bp_records %}
+<tr>
+    <td>{{ bp.systolic }}</td>
+    <td>{{ bp.diastolic }}</td>
+    <td>{{ bp.pulse }}</td>
+    <td>{{ bp.date }}</td>
+</tr>
+{% endfor %}
+</table>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const glucoseLabels = [
+{% for g in glucose_records %}
+    "{{ g.date|date:'d M' }}"{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+
+const glucoseValues = [
+{% for g in glucose_records %}
+    {{ g.blood_sugar }}{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+
+new Chart(document.getElementById('glucoseChart'), {
+    type: 'line',
+    data: {
+        labels: glucoseLabels,
+        datasets: [{
+            label: 'Blood Sugar',
+            data: glucoseValues,
+            borderWidth: 2
+        }]
+    }
+});
+
+
+const bpLabels = [
+{% for bp in bp_records %}
+    "{{ bp.date|date:'d M' }}"{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+
+const systolicValues = [
+{% for bp in bp_records %}
+    {{ bp.systolic }}{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+
+const diastolicValues = [
+{% for bp in bp_records %}
+    {{ bp.diastolic }}{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+
+new Chart(document.getElementById('bpChart'), {
+    type: 'line',
+    data: {
+        labels: bpLabels,
+        datasets: [
+            {
+                label: 'Systolic',
+                data: systolicValues,
+                borderWidth: 2
+            },
+            {
+                label: 'Diastolic',
+                data: diastolicValues,
+                borderWidth: 2
+            }
+        ]
+    }
+});
+</script>

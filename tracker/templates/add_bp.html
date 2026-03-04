@@ -1,0 +1,16 @@
+<h2>Add Blood Pressure Record</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Systolic:</label>
+    <input type="number" name="systolic"><br><br>
+
+    <label>Diastolic:</label>
+    <input type="number" name="diastolic"><br><br>
+
+    <label>Pulse:</label>
+    <input type="number" name="pulse"><br><br>
+
+    <button type="submit">Save</button>
+</form>
