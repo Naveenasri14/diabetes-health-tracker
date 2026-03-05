@@ -1,0 +1,21 @@
+<h2>Blood Pressure Records</h2>
+
+<a href="{% url 'add_bp' %}">Add BP</a>
+
+<table border="1">
+<tr>
+    <th>Systolic</th>
+    <th>Diastolic</th>
+    <th>Pulse</th>
+    <th>Date</th>
+</tr>
+
+{% for bp in bp_records %}
+<tr>
+    <td>{{ bp.systolic }}</td>
+    <td>{{ bp.diastolic }}</td>
+    <td>{{ bp.pulse }}</td>
+    <td>{{ bp.date }}</td>
+</tr>
+{% endfor %}
+</table>

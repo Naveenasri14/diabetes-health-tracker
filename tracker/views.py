@@ -61,3 +61,13 @@ def add_bp(request):
         return redirect('dashboard')
 
     return render(request, "add_bp.html")
+@login_required
+def glucose_page(request):
+    records = GlucoseRecord.objects.filter(user=request.user).order_by('-date')
+    return render(request, "glucose.html", {'glucose_records': records})
+
+
+@login_required
+def bp_page(request):
+    records = BPRecord.objects.filter(user=request.user).order_by('-date')
+    return render(request, "bp.html", {'bp_records': records})

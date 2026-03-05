@@ -1,0 +1,23 @@
+<h2>Glucose Records</h2>
+
+<a href="{% url 'add_record' %}">Add Glucose</a>
+
+<table border="1">
+<tr>
+    <th>Blood Sugar</th>
+    <th>Meal</th>
+    <th>Medication</th>
+    <th>Exercise</th>
+    <th>Date</th>
+</tr>
+
+{% for record in glucose_records %}
+<tr>
+    <td>{{ record.blood_sugar }}</td>
+    <td>{{ record.meal }}</td>
+    <td>{{ record.medication }}</td>
+    <td>{{ record.exercise }}</td>
+    <td>{{ record.date }}</td>
+</tr>
+{% endfor %}
+</table>
