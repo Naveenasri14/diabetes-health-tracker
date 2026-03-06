@@ -6,3 +6,4 @@ urlpatterns = [
     path('', include('tracker.urls')),   # include tracker ONCE only
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+

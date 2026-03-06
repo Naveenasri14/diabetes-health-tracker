@@ -1,6 +1,285 @@
-<h1>Health Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Diabetes Health Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<a href="{% url 'glucose' %}">View Glucose Records</a>
-<br><br>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-<a href="{% url 'bp' %}">View Blood Pressure Records</a>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .header h1 span {
+            color: #667eea;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(244, 67, 54, 0.3);
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .glucose-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+        }
+
+        .bp-card {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e5ecff 100%);
+        }
+
+        .recent-records {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-records h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .records-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .record-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .record-table th {
+            text-align: left;
+            padding: 10px;
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .record-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .record-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .view-all-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-records {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .records-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Welcome, <span>{{ request.user.username }}</span>!</h1>
+                <p style="color: #666; margin-top: 10px;">Track your health metrics below</p>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+        <div class="dashboard-cards">
+            <a href="{% url 'glucose' %}" class="card glucose-card">
+                <div class="card-icon">🩸</div>
+                <h2>View Glucose Records</h2>
+                <p>Track your blood sugar levels, meals, medications, and exercise activities. Monitor your glucose trends over time.</p>
+            </a>
+
+            <a href="{% url 'bp' %}" class="card bp-card">
+                <div class="card-icon">❤️</div>
+                <h2>View Blood Pressure Records</h2>
+                <p>Monitor your systolic, diastolic, and pulse readings. Keep track of your cardiovascular health.</p>
+            </a>
+        </div>
+
+        <div class="recent-records">
+            <h2>Recent Records</h2>
+            <div class="records-grid">
+                <div class="record-section">
+                    <h3>Recent Glucose Readings</h3>
+                    {% if glucose_records %}
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Blood Sugar</th>
+                                <th>Meal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in glucose_records|slice:":5" %}
+                            <tr>
+                                <td>{{ record.date|date:"M d, Y" }}</td>
+                                <td>{{ record.blood_sugar }} mg/dL</td>
+                                <td>{{ record.meal }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'glucose' %}" class="view-all-link">View all glucose records →</a>
+                    {% else %}
+                    <div class="no-records">
+                        No glucose records yet. 
+                        <a href="{% url 'add_record' %}" style="color: #667eea; text-decoration: none;">Add your first record</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="record-section">
+                    <h3>Recent Blood Pressure Readings</h3>
+                    {% if bp_records %}
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Systolic</th>
+                                <th>Diastolic</th>
+                                <th>Pulse</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in bp_records|slice:":5" %}
+                            <tr>
+                                <td>{{ record.date|date:"M d, Y" }}</td>
+                                <td>{{ record.systolic }}</td>
+                                <td>{{ record.diastolic }}</td>
+                                <td>{{ record.pulse }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'bp' %}" class="view-all-link">View all blood pressure records →</a>
+                    {% else %}
+                    <div class="no-records">
+                        No blood pressure records yet. 
+                        <a href="{% url 'add_bp' %}" style="color: #667eea; text-decoration: none;">Add your first record</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
