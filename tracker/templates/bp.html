@@ -1,21 +1,88 @@
-<h2>Blood Pressure Records</h2>
-
-<a href="{% url 'add_bp' %}">Add BP</a>
-
-<table border="1">
-<tr>
-    <th>Systolic</th>
-    <th>Diastolic</th>
-    <th>Pulse</th>
-    <th>Date</th>
-</tr>
-
-{% for bp in bp_records %}
-<tr>
-    <td>{{ bp.systolic }}</td>
-    <td>{{ bp.diastolic }}</td>
-    <td>{{ bp.pulse }}</td>
-    <td>{{ bp.date }}</td>
-</tr>
-{% endfor %}
-</table>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blood Pressure Records</title>
+    <style>
+        /* Same styles as glucose.html */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .add-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            color: #555;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blood Pressure Records</h1>
+        <a href="{% url 'add_bp' %}" class="add-btn">+ Add Blood Pressure Record</a>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Systolic</th>
+                    <th>Diastolic</th>
+                    <th>Pulse</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in bp_records %}
+                <tr>
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.systolic }}</td>
+                    <td>{{ record.diastolic }}</td>
+                    <td>{{ record.pulse }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #999;">No records found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+    </div>
+</body>
+</html>
