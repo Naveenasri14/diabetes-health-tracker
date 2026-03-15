@@ -104,6 +104,82 @@
             background: linear-gradient(135deg, #f0f4ff 0%, #e5ecff 100%);
         }
 
+        .reminder-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .reminder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .reminder-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .btn-reminder {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-reminder:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .active-alarms {
+            background: #fff3e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .alarm-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ff9800;
+        }
+
+        .alarm-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f57c00;
+        }
+
+        .alarm-title {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .btn-alarm {
+            background: #ff9800;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
         .recent-records {
             background: white;
             border-radius: 20px;
@@ -151,10 +227,6 @@
             font-size: 14px;
         }
 
-        .record-table tr:last-child td {
-            border-bottom: none;
-        }
-
         .view-all-link {
             display: inline-block;
             margin-top: 15px;
@@ -162,10 +234,6 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
-        }
-
-        .view-all-link:hover {
-            text-decoration: underline;
         }
 
         .no-records {
@@ -200,17 +268,36 @@
             <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
         </div>
 
+        <!-- Reminder Section -->
+        <div class="reminder-section">
+            <div class="reminder-header">
+                <h2>⏰ Active Alarms & Reminders</h2>
+                <a href="{% url 'reminder_settings' %}" class="btn-reminder">
+                    <span>⚙️</span> Set Reminders
+                </a>
+            </div>
+            
+            <!-- Active Alarms Display -->
+            <div class="active-alarms" id="activeAlarms">
+                <h3 style="color: #f57c00; margin-bottom: 15px;">🔔 Currently Active</h3>
+                <div id="alarmsList">
+                    <!-- Alarms will be loaded here via JavaScript -->
+                    <p style="color: #999; text-align: center;">Checking for active alarms...</p>
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard-cards">
             <a href="{% url 'glucose' %}" class="card glucose-card">
                 <div class="card-icon">🩸</div>
                 <h2>View Glucose Records</h2>
-                <p>Track your blood sugar levels, meals, medications, and exercise activities. Monitor your glucose trends over time.</p>
+                <p>Track your blood sugar levels, meals, medications, and exercise activities.</p>
             </a>
 
             <a href="{% url 'bp' %}" class="card bp-card">
                 <div class="card-icon">❤️</div>
                 <h2>View Blood Pressure Records</h2>
-                <p>Monitor your systolic, diastolic, and pulse readings. Keep track of your cardiovascular health.</p>
+                <p>Monitor your systolic, diastolic, and pulse readings.</p>
             </a>
         </div>
 
@@ -232,8 +319,8 @@
                             {% for record in glucose_records|slice:":5" %}
                             <tr>
                                 <td>{{ record.date|date:"M d, Y" }}</td>
-                                <td>{{ record.blood_sugar }} mg/dL</td>
-                                <td>{{ record.meal }}</td>
+                                <td>{{ record.glucose_level }} mg/dL</td>
+                                <td>{{ record.meal_type|default:"—" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -242,7 +329,7 @@
                     {% else %}
                     <div class="no-records">
                         No glucose records yet. 
-                        <a href="{% url 'add_record' %}" style="color: #667eea; text-decoration: none;">Add your first record</a>
+                        <a href="{% url 'add_record' %}" style="color: #667eea;">Add your first record</a>
                     </div>
                     {% endif %}
                 </div>
@@ -265,7 +352,7 @@
                                 <td>{{ record.date|date:"M d, Y" }}</td>
                                 <td>{{ record.systolic }}</td>
                                 <td>{{ record.diastolic }}</td>
-                                <td>{{ record.pulse }}</td>
+                                <td>{{ record.pulse|default:"—" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -274,12 +361,175 @@
                     {% else %}
                     <div class="no-records">
                         No blood pressure records yet. 
-                        <a href="{% url 'add_bp' %}" style="color: #667eea; text-decoration: none;">Add your first record</a>
+                        <a href="{% url 'add_bp' %}" style="color: #667eea;">Add your first record</a>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Alarm Checking Script -->
+    <script>
+    // Check for active alarms every 5 seconds
+    function checkActiveAlarms() {
+        fetch('/check-active-alarms/')
+            .then(response => response.json())
+            .then(data => {
+                const alarmsList = document.getElementById('alarmsList');
+                
+                if (data.has_alarm) {
+                    // Show the alarm immediately by redirecting
+                    window.location.href = `/alarm/${data.reminder_id}/`;
+                } else {
+                    // Check for any upcoming alarms (next 5 minutes)
+                    fetch('/check-upcoming-alarms/')
+                        .then(res => res.json())
+                        .then(upcoming => {
+                            if (upcoming.alarms && upcoming.alarms.length > 0) {
+                                let html = '';
+                                upcoming.alarms.forEach(alarm => {
+                                    html += `
+                                        <div class="alarm-item">
+                                            <div>
+                                                <div class="alarm-time">⏰ ${alarm.time}</div>
+                                                <div class="alarm-title">${alarm.title}</div>
+                                            </div>
+                                            <a href="/alarm/${alarm.id}/" class="btn-alarm">View</a>
+                                        </div>
+                                    `;
+                                });
+                                alarmsList.innerHTML = html;
+                            } else {
+                                alarmsList.innerHTML = '<p style="color: #999; text-align: center;">No active alarms</p>';
+                            }
+                        });
+                }
+            })
+            .catch(err => {
+                console.log('Alarm check failed:', err);
+                document.getElementById('alarmsList').innerHTML = 
+                    '<p style="color: #999; text-align: center;">Unable to check alarms</p>';
+            });
+    }
+
+    // Start checking when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        checkActiveAlarms();
+        setInterval(checkActiveAlarms, 5000); // Check every 5 seconds
+    });
+
+    // Also check when page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkActiveAlarms();
+        }
+    });
+    </script>
+
+    <!-- Alarm Sound Element (hidden) -->
+<audio id="alarmSound" preload="auto" loop style="display: none;">
+    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// Alarm checking script
+let alarmPlaying = false;
+let alarmCheckInterval;
+
+function checkAlarms() {
+    fetch('/check-active-alarms/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_alarm) {
+                // Play sound immediately
+                playAlarmSound();
+                
+                // Show floating notification
+                showNotification(data);
+                
+                // Redirect to alarm page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = `/alarm/${data.reminder_id}/`;
+                }, 2000);
+            } else {
+                stopAlarmSound();
+            }
+        })
+        .catch(err => console.log('Alarm check failed:', err));
+}
+
+function playAlarmSound() {
+    if (!alarmPlaying) {
+        const audio = document.getElementById('alarmSound');
+        audio.volume = 0.8;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        alarmPlaying = true;
+    }
+}
+
+function stopAlarmSound() {
+    const audio = document.getElementById('alarmSound');
+    audio.pause();
+    audio.currentTime = 0;
+    alarmPlaying = false;
+}
+
+function showNotification(data) {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff6b6b, #ff0000);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        z-index: 9999;
+        animation: slideIn 0.5s;
+        border: 2px solid #ffd700;
+        cursor: pointer;
+    `;
+    notif.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 40px;">⏰</span>
+            <div>
+                <strong style="font-size: 20px;">🔔 ALARM!</strong>
+                <p style="margin-top: 5px;">${data.title}</p>
+                <small>Redirecting...</small>
+            </div>
+        </div>
+    `;
+    notif.onclick = () => window.location.href = `/alarm/${data.reminder_id}/`;
+    document.body.appendChild(notif);
+    
+    // Remove after 2 seconds
+    setTimeout(() => notif.remove(), 2000);
+}
+
+// Add CSS animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+
+// Start checking when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkAlarms();
+    setInterval(checkAlarms, 10000); // Check every 10 seconds
+});
+
+// Also check when page becomes visible
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        checkAlarms();
+    }
+});
+</script>
 </body>
 </html>

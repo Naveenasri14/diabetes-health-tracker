@@ -2,8 +2,8 @@
 <html>
 <head>
     <title>Blood Pressure Records</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Same styles as glucose.html */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -11,7 +11,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -30,10 +30,126 @@
             border-radius: 10px;
             text-decoration: none;
             margin-bottom: 20px;
+            transition: transform 0.3s ease;
         }
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card p {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .stat-card small {
+            color: #999;
+            font-size: 12px;
+        }
+        .bp-category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .normal-badge {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .elevated-badge {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .high-badge {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+        .chart-controls select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        
+        /* Insights Section */
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .insight-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .insight-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .insight-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
         th, td {
             padding: 12px;
@@ -43,6 +159,36 @@
         th {
             background: #f8f9fa;
             color: #555;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .bp-category {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .normal {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .elevated {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .high {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .no-records {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
         .back-link {
             display: inline-block;
@@ -50,13 +196,101 @@
             color: #667eea;
             text-decoration: none;
         }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .insights {
+                grid-template-columns: 1fr;
+            }
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Blood Pressure Records</h1>
-        <a href="{% url 'add_bp' %}" class="add-btn">+ Add Blood Pressure Record</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>❤️ Blood Pressure Records</h1>
+            <a href="{% url 'add_bp' %}" class="add-btn">+ Add New Reading</a>
+        </div>
         
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Avg Systolic</h3>
+                <p>{{ avg_systolic|default:"0" }} <small>mmHg</small></p>
+                <div class="bp-category-badge 
+                    {% if avg_systolic < 120 %}normal-badge
+                    {% elif avg_systolic < 130 %}elevated-badge
+                    {% else %}high-badge{% endif %}">
+                    {% if avg_systolic < 120 %}Normal
+                    {% elif avg_systolic < 130 %}Elevated
+                    {% else %}High{% endif %}
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Diastolic</h3>
+                <p>{{ avg_diastolic|default:"0" }} <small>mmHg</small></p>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Pulse</h3>
+                <p>{{ avg_pulse|default:"0" }} <small>bpm</small></p>
+            </div>
+            <div class="stat-card">
+                <h3>Readings</h3>
+                <p>{{ total_records|default:"0" }}</p>
+                <small>{{ monthly_count }} this month</small>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2>📈 Blood Pressure Trends</h2>
+                <div class="chart-controls">
+                    <select id="timeRange" onchange="updateChartRange()">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="bpChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights">
+            <div class="insight-card">
+                <h4>📊 Overall Status</h4>
+                <p>Your blood pressure is <strong>{{ bp_status|default:"normal" }}</strong>. 
+                {% if avg_systolic < 120 %}Great job keeping it in the normal range!
+                {% elif avg_systolic < 130 %}Consider lifestyle changes to lower it.
+                {% else %}Please consult your doctor about this range.{% endif %}</p>
+            </div>
+            <div class="insight-card">
+                <h4>⏰ Best Time</h4>
+                <p>Your readings are typically best in the <strong>{{ best_time|default:"morning" }}</strong>.</p>
+            </div>
+            <div class="insight-card">
+                <h4>❤️ Heart Health</h4>
+                <p>Your resting pulse is <strong>{{ pulse_status|default:"normal" }}</strong>.
+                {% if avg_pulse < 60 %} (athletic)
+                {% elif avg_pulse < 100 %} (normal)
+                {% else %} (elevated){% endif %}</p>
+            </div>
+        </div>
+
+        <!-- Records Table -->
+        <h2 style="margin: 30px 0 15px;">📋 Recent Readings</h2>
         <table>
             <thead>
                 <tr>
@@ -64,19 +298,31 @@
                     <th>Systolic</th>
                     <th>Diastolic</th>
                     <th>Pulse</th>
+                    <th>Category</th>
+                    <th>Notes</th>
                 </tr>
             </thead>
             <tbody>
                 {% for record in bp_records %}
                 <tr>
-                    <td>{{ record.date }}</td>
-                    <td>{{ record.systolic }}</td>
-                    <td>{{ record.diastolic }}</td>
-                    <td>{{ record.pulse }}</td>
+                    <td>{{ record.date|date:"M d, Y" }}</td>
+                    <td><strong>{{ record.systolic }}</strong></td>
+                    <td><strong>{{ record.diastolic }}</strong></td>
+                    <td>{{ record.pulse|default:"—" }}</td>
+                    <td>
+                        {% if record.systolic < 120 and record.diastolic < 80 %}
+                            <span class="bp-category normal">Normal</span>
+                        {% elif record.systolic < 130 and record.diastolic < 80 %}
+                            <span class="bp-category elevated">Elevated</span>
+                        {% else %}
+                            <span class="bp-category high">High</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ record.notes|default:"—"|truncatechars:30 }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align: center; color: #999;">No records found</td>
+                    <td colspan="6" class="no-records">No blood pressure records found. <a href="{% url 'add_bp' %}" style="color: #667eea;">Add your first reading</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -84,5 +330,109 @@
         
         <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
     </div>
+
+    <script>
+        // Chart data from Django
+        const chartLabels = {{ chart_labels|safe }};
+        const systolicData = {{ systolic_data|safe }};
+        const diastolicData = {{ diastolic_data|safe }};
+
+        // Create chart
+        const ctx = document.getElementById('bpChart').getContext('2d');
+        const bpChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [
+                    {
+                        label: 'Systolic',
+                        data: systolicData,
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: false
+                    },
+                    {
+                        label: 'Diastolic',
+                        data: diastolicData,
+                        borderColor: '#2196f3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw} mmHg`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 40,
+                        max: 200,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        systolicNormal: {
+                            type: 'line',
+                            yMin: 120,
+                            yMax: 120,
+                            borderColor: '#4caf50',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: 'Systolic (120)',
+                                enabled: true,
+                                position: 'end'
+                            }
+                        },
+                        diastolicNormal: {
+                            type: 'line',
+                            yMin: 80,
+                            yMax: 80,
+                            borderColor: '#2196f3',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: 'Diastolic (80)',
+                                enabled: true,
+                                position: 'end'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateChartRange() {
+            const days = document.getElementById('timeRange').value;
+            // In a real app, you'd fetch new data here
+            alert(`Showing data for last ${days} days`);
+        }
+    </script>
 </body>
 </html>
