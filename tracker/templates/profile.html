@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Setup - Diabetes Health Tracker</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#667eea,#764ba2);
+min-height:100vh;
+display:flex;c
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+/* Main Card */
+.container{
+background:white;
+width:460px;
+padding:35px 40px;
+border-radius:15px;
+box-shadow:0 15px 40px rgba(0,0,0,0.25);
+}
+
+/* Heading */
+.header{
+text-align:center;
+margin-bottom:25px;
+}
+
+.header h1{
+font-size:24px;
+color:#333;
+margin-bottom:5px;
+}
+
+.header p{
+font-size:14px;
+color:#777;
+}
+
+/* Form Groups */
+.form-group{
+margin-bottom:18px;
+}
+
+label{
+display:block;
+margin-bottom:6px;
+font-weight:600;
+color:#444;
+}
+
+input,select{
+width:100%;
+padding:10px 12px;
+border:1px solid #ddd;
+border-radius:8px;
+font-size:14px;
+transition:0.3s;
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:#667eea;
+box-shadow:0 0 5px rgba(102,126,234,0.3);
+}
+
+/* Checkbox */
+.checkbox-group{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+}
+
+/* Button */
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+background:#667eea;
+color:white;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#5563d6;
+transform:translateY(-1px);
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>👤 Profile Setup</h1>
+<p>Enter your health details</p>
+</div>
+
+<form method="POST">
+
+
+<div class="form-group">
+<label>Age</label>
+<input type="number" name="age" placeholder="Enter your age" required>
+</div>
+
+<div class="form-group">
+<label>Gender</label>
+<select name="gender">
+<option value="">Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Weight (kg)</label>
+<input type="number" name="weight" placeholder="Enter weight">
+</div>
+
+<div class="form-group">
+<label>Height (cm)</label>
+<input type="number" name="height" placeholder="Enter height">
+</div>
+
+<div class="form-group">
+<label>Blood Group</label>
+<input type="text" name="blood_group" placeholder="Eg: O+">
+</div>
+
+<div class="form-group">
+<label>Diabetes Type</label>
+<select name="diabetes_type">
+<option value="type1">Type 1</option>
+<option value="type2">Type 2</option>
+<option value="gestational">Gestational</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Years Since Diagnosis</label>
+<input type="number" name="years" placeholder="Years with diabetes">
+</div>
+
+<div class="form-group checkbox-group">
+<input type="checkbox" name="family_history">
+<span>Family history of diabetes</span>
+</div>
+
+<button type="submit">Save Profile</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

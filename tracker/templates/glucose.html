@@ -1,23 +1,433 @@
-<h2>Glucose Records</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Glucose Records</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .add-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card p {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .stat-card small {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+        .chart-controls select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        .chart-controls select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        
+        /* Insights Section */
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .insight-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .insight-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .insight-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .insight-card strong {
+            color: #667eea;
+        }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .glucose-normal {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        .glucose-high {
+            color: #c62828;
+            font-weight: 600;
+        }
+        .glucose-low {
+            color: #f57c00;
+            font-weight: 600;
+        }
+        .glucose-prediabetes {
+            color: #ed6c02;
+            font-weight: 600;
+        }
+        .no-records {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .meal-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .insights {
+                grid-template-columns: 1fr;
+            }
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>📊 Glucose Records</h1>
+            <a href="{% url 'add_record' %}" class="add-btn">+ Add New Reading</a>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Average Glucose</h3>
+                <p>{{ avg_glucose|default:"0" }} <small>mg/dL</small></p>
+                <small>Last 30 days</small>
+            </div>
+            <div class="stat-card">
+                <h3>Estimated A1C</h3>
+                <p>{{ estimated_a1c|default:"0" }} <small>%</small></p>
+                <small>Based on avg</small>
+            </div>
+            <div class="stat-card">
+                <h3>In Range</h3>
+                <p>{{ in_range_percent|default:"0" }}<small>%</small></p>
+                <small>{{ normal_count }} readings</small>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Reading</h3>
+                <p>{{ today_reading|default:"--" }} <small>mg/dL</small></p>
+                <small>{{ today_category|default:"—" }}</small>
+            </div>
+        </div>
 
-<a href="{% url 'add_record' %}">Add Glucose</a>
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2>📈 Glucose Trends</h2>
+                <div class="chart-controls">
+                    <select id="timeRange" onchange="updateChartRange()">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="glucoseChart"></canvas>
+            </div>
+        </div>
 
-<table border="1">
-<tr>
-    <th>Blood Sugar</th>
-    <th>Meal</th>
-    <th>Medication</th>
-    <th>Exercise</th>
-    <th>Date</th>
-</tr>
+        <!-- Insights Section -->
+        <div class="insights">
+            <div class="insight-card">
+                <h4>🕒 Best Time</h4>
+                <p>Your glucose levels are typically best during <strong>{{ best_time|default:"morning" }}</strong> hours.</p>
+            </div>
+            <div class="insight-card">
+                <h4>🍽️ Meal Impact</h4>
+                <p>After meals, your glucose rises by an average of <strong>{{ meal_impact|default:"40" }} mg/dL</strong>.</p>
+            </div>
+            <div class="insight-card">
+                <h4>💊 Medication</h4>
+                <p>You've taken medication for <strong>{{ medication_percent|default:"0" }}%</strong> of readings.</p>
+            </div>
+        </div>
 
-{% for record in glucose_records %}
-<tr>
-    <td>{{ record.blood_sugar }}</td>
-    <td>{{ record.meal }}</td>
-    <td>{{ record.medication }}</td>
-    <td>{{ record.exercise }}</td>
-    <td>{{ record.date }}</td>
-</tr>
-{% endfor %}
-</table>
+        <!-- Records Table -->
+        <h2 style="margin: 30px 0 15px;">📋 Recent Readings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Glucose</th>
+                    <th>Reading Type</th>
+                    <th>Meal</th>
+                    <th>Medication</th>
+                    <th>Activity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in glucose_records %}
+                <tr>
+                    <td>{{ record.date|date:"M d, Y" }}</td>
+                    <td>{{ record.time|time:"g:i A" }}</td>
+                    <td class="glucose-{{ record.get_glucose_category }}">
+                        {{ record.glucose_level }} mg/dL
+                    </td>
+                    <td>{{ record.get_reading_type_display }}</td>
+                    <td>
+                        {% if record.meal_type %}
+                            <span class="meal-badge">{{ record.get_meal_type_display }}</span>
+                            {% if record.food_notes %}<br><small>{{ record.food_notes|truncatechars:20 }}</small>{% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record.medication_taken %}
+                            {{ record.medicine_name|default:"Yes" }}
+                            {% if record.insulin_dose %}({{ record.insulin_dose }}u){% endif %}
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record.activity_type %}
+                            {{ record.get_activity_type_display }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-records">No glucose records found. <a href="{% url 'add_record' %}" style="color: #667eea;">Add your first reading</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+    </div>
+
+    <script>
+        // Chart data from Django
+        const chartLabels = {{ chart_labels|safe }};
+        const chartData = {{ chart_values|safe }};
+        const chartTypes = {{ chart_types|safe }};
+
+        // Create chart
+        const ctx = document.getElementById('glucoseChart').getContext('2d');
+        const glucoseChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Glucose Level',
+                    data: chartData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        const type = chartTypes[index];
+                        if (type === 'high') return '#c62828';
+                        if (type === 'low') return '#f57c00';
+                        if (type === 'prediabetes') return '#ed6c02';
+                        return '#2e7d32';
+                    },
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Glucose: ${context.raw} mg/dL`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 0,
+                        max: 300,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        lowLine: {
+                            type: 'line',
+                            yMin: 70,
+                            yMax: 70,
+                            borderColor: '#f57c00',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: 'Low (70)',
+                                enabled: true,
+                                position: 'end'
+                            }
+                        },
+                        highLine: {
+                            type: 'line',
+                            yMin: 140,
+                            yMax: 140,
+                            borderColor: '#c62828',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: 'High (140)',
+                                enabled: true,
+                                position: 'end'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateChartRange() {
+            const days = document.getElementById('timeRange').value;
+            // In a real app, you'd fetch new data here
+            alert(`Showing data for last ${days} days`);
+        }
+    </script>
+</body>
+</html>

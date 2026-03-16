@@ -1,6 +1,586 @@
-<h1>Health Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Diabetes Health Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<a href="{% url 'glucose' %}">View Glucose Records</a>
-<br><br>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-<a href="{% url 'bp' %}">View Blood Pressure Records</a>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .profile-icon span {
+            font-size: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .header h1 span {
+            color: #667eea;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(244, 67, 54, 0.3);
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .glucose-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+        }
+
+        .bp-card {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e5ecff 100%);
+        }
+
+        .reminder-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .reminder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .reminder-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .btn-reminder {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-reminder:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .active-alarms {
+            background: #fff3e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .alarm-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ff9800;
+        }
+
+        .alarm-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f57c00;
+        }
+
+        .alarm-title {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .btn-alarm {
+            background: #ff9800;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .recent-records {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-records h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .records-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .record-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .record-table th {
+            text-align: left;
+            padding: 10px;
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .record-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .view-all-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .no-records {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .records-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .header-left {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <!-- Profile Icon - Click to go to profile page -->
+                <a href="{% url 'profile' %}" style="text-decoration: none;">
+                    <div class="profile-icon">
+                        <span>👤</span>
+                    </div>
+                </a>
+                <div>
+                    <h1>Welcome, <span>{{ request.user.username }}</span>!</h1>
+                    <p style="color: #666; margin-top: 10px;">Track your health metrics below</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="{% url 'profile' %}" class="profile-link" style="color: #667eea; text-decoration: none; margin-right: 15px; font-weight: 500;">Profile</a>
+                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <!-- Reminder Section -->
+        <div class="reminder-section">
+            <div class="reminder-header">
+                <h2>⏰ Active Alarms & Reminders</h2>
+                <a href="{% url 'reminder_settings' %}" class="btn-reminder">
+                    <span>⚙️</span> Set Reminders
+                </a>
+            </div>
+            
+            <!-- Active Alarms Display -->
+            <div class="active-alarms" id="activeAlarms">
+                <h3 style="color: #f57c00; margin-bottom: 15px;">🔔 Currently Active</h3>
+                <div id="alarmsList">
+                    <!-- Alarms will be loaded here via JavaScript -->
+                    <p style="color: #999; text-align: center;">Checking for active alarms...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-cards">
+            <a href="{% url 'glucose' %}" class="card glucose-card">
+                <div class="card-icon">🩸</div>
+                <h2>View Glucose Records</h2>
+                <p>Track your blood sugar levels, meals, medications, and exercise activities.</p>
+            </a>
+
+            <a href="{% url 'bp' %}" class="card bp-card">
+                <div class="card-icon">❤️</div>
+                <h2>View Blood Pressure Records</h2>
+                <p>Monitor your systolic, diastolic, and pulse readings.</p>
+            </a>
+        </div>
+
+        <div class="recent-records">
+            <h2>Recent Records</h2>
+            <div class="records-grid">
+                <div class="record-section">
+                    <h3>Recent Glucose Readings</h3>
+                    {% if glucose_records %}
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Blood Sugar</th>
+                                <th>Meal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in glucose_records|slice:":5" %}
+                            <tr>
+                                <td>{{ record.date|date:"M d, Y" }}</td>
+                                <td>{{ record.glucose_level }} mg/dL</td>
+                                <td>{{ record.meal_type|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'glucose' %}" class="view-all-link">View all glucose records →</a>
+                    {% else %}
+                    <div class="no-records">
+                        No glucose records yet. 
+                        <a href="{% url 'add_record' %}" style="color: #667eea;">Add your first record</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="record-section">
+                    <h3>Recent Blood Pressure Readings</h3>
+                    {% if bp_records %}
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Systolic</th>
+                                <th>Diastolic</th>
+                                <th>Pulse</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in bp_records|slice:":5" %}
+                            <tr>
+                                <td>{{ record.date|date:"M d, Y" }}</td>
+                                <td>{{ record.systolic }}</td>
+                                <td>{{ record.diastolic }}</td>
+                                <td>{{ record.pulse|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'bp' %}" class="view-all-link">View all blood pressure records →</a>
+                    {% else %}
+                    <div class="no-records">
+                        No blood pressure records yet. 
+                        <a href="{% url 'add_bp' %}" style="color: #667eea;">Add your first record</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alarm Checking Script -->
+    <script>
+    // Check for active alarms every 5 seconds
+    function checkActiveAlarms() {
+        fetch('/check-active-alarms/')
+            .then(response => response.json())
+            .then(data => {
+                const alarmsList = document.getElementById('alarmsList');
+                
+                if (data.has_alarm) {
+                    // Show the alarm immediately by redirecting
+                    window.location.href = `/alarm/${data.reminder_id}/`;
+                } else {
+                    // Check for any upcoming alarms (next 5 minutes)
+                    fetch('/check-upcoming-alarms/')
+                        .then(res => res.json())
+                        .then(upcoming => {
+                            if (upcoming.alarms && upcoming.alarms.length > 0) {
+                                let html = '';
+                                upcoming.alarms.forEach(alarm => {
+                                    html += `
+                                        <div class="alarm-item">
+                                            <div>
+                                                <div class="alarm-time">⏰ ${alarm.time}</div>
+                                                <div class="alarm-title">${alarm.title}</div>
+                                            </div>
+                                            <a href="/alarm/${alarm.id}/" class="btn-alarm">View</a>
+                                        </div>
+                                    `;
+                                });
+                                alarmsList.innerHTML = html;
+                            } else {
+                                alarmsList.innerHTML = '<p style="color: #999; text-align: center;">No active alarms</p>';
+                            }
+                        });
+                }
+            })
+            .catch(err => {
+                console.log('Alarm check failed:', err);
+                document.getElementById('alarmsList').innerHTML = 
+                    '<p style="color: #999; text-align: center;">Unable to check alarms</p>';
+            });
+    }
+
+    // Start checking when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        checkActiveAlarms();
+        setInterval(checkActiveAlarms, 5000); // Check every 5 seconds
+    });
+
+    // Also check when page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkActiveAlarms();
+        }
+    });
+    </script>
+
+    <!-- Alarm Sound Element (hidden) -->
+<audio id="alarmSound" preload="auto" loop style="display: none;">
+    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// Alarm checking script
+let alarmPlaying = false;
+let alarmCheckInterval;
+
+function checkAlarms() {
+    fetch('/check-active-alarms/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_alarm) {
+                // Play sound immediately
+                playAlarmSound();
+                
+                // Show floating notification
+                showNotification(data);
+                
+                // Redirect to alarm page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = `/alarm/${data.reminder_id}/`;
+                }, 2000);
+            } else {
+                stopAlarmSound();
+            }
+        })
+        .catch(err => console.log('Alarm check failed:', err));
+}
+
+function playAlarmSound() {
+    if (!alarmPlaying) {
+        const audio = document.getElementById('alarmSound');
+        audio.volume = 0.8;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        alarmPlaying = true;
+    }
+}
+
+function stopAlarmSound() {
+    const audio = document.getElementById('alarmSound');
+    audio.pause();
+    audio.currentTime = 0;
+    alarmPlaying = false;
+}
+
+function showNotification(data) {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff6b6b, #ff0000);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        z-index: 9999;
+        animation: slideIn 0.5s;
+        border: 2px solid #ffd700;
+        cursor: pointer;
+    `;
+    notif.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 40px;">⏰</span>
+            <div>
+                <strong style="font-size: 20px;">🔔 ALARM!</strong>
+                <p style="margin-top: 5px;">${data.title}</p>
+                <small>Redirecting...</small>
+            </div>
+        </div>
+    `;
+    notif.onclick = () => window.location.href = `/alarm/${data.reminder_id}/`;
+    document.body.appendChild(notif);
+    
+    // Remove after 2 seconds
+    setTimeout(() => notif.remove(), 2000);
+}
+
+// Add CSS animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+
+// Start checking when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkAlarms();
+    setInterval(checkAlarms, 10000); // Check every 10 seconds
+});
+
+// Also check when page becomes visible
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        checkAlarms();
+    }
+});
+</script>
+</body>
+</html>

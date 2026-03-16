@@ -1,0 +1,23 @@
+<h2>Add Caregiver</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+Name:
+<input type="text" name="name"><br>
+
+Relationship:
+<input type="text" name="relationship"><br>
+
+Phone:
+<input type="text" name="phone"><br>
+
+Email:
+<input type="email" name="email"><br>
+
+Emergency Contact:
+<input type="checkbox" name="emergency"><br>
+
+<button type="submit">Add Caregiver</button>
+
+</form>

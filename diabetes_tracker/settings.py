@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,12 +78,15 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'diabetes_db',
+
         'USER': 'postgres',
         'PASSWORD': 'postgres123',
         'HOST': 'localhost',
         'PORT': '5433',
+
     }
 }
+
 
 
 # Password validation
@@ -128,3 +132,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
+
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'naveenarangaraju2006@gmail.com'  # ← YOUR EMAIL (hardcoded)
+EMAIL_HOST_PASSWORD = 'euru wvqq yppq urpb'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
+
+# Default from address (also hardcoded to your email)
+DEFAULT_FROM_EMAIL = 'Diabetes Tracker <naveenarangaraju2006@gmail.com>'
+
+# Twilio configuration
+TWILIO_ACCOUNT_SID = 'your-twilio-account-sid'
+TWILIO_AUTH_TOKEN = 'your-twilio-auth-token'
+TWILIO_PHONE_NUMBER = '+1234567890'  # Your Twilio phone number

@@ -1,10 +1,484 @@
-<h2>Add Glucose Record</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Glucose Record</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="number" name="blood_sugar" placeholder="Blood Sugar" required><br><br>
-    <input type="text" name="meal" placeholder="Meal" required><br><br>
-    <input type="text" name="medication" placeholder="Medication" required><br><br>
-    <input type="text" name="exercise" placeholder="Exercise" required><br><br>
-    <button type="submit">Save</button>
-</form>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 600px;
+            padding: 40px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group label span {
+            color: #f44336;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .reading-type-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .reading-type-option {
+            text-align: center;
+        }
+
+        .reading-type-option input[type="radio"] {
+            display: none;
+        }
+
+        .reading-type-option label {
+            display: block;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .reading-type-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        small {
+            color: #666;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            min-width: 300px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .popup.success {
+            border-left: 4px solid #4caf50;
+        }
+
+        .popup.error {
+            border-left: 4px solid #f44336;
+        }
+
+        .popup-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .popup-icon {
+            margin-right: 15px;
+            font-size: 24px;
+        }
+
+        .popup-message {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            margin-left: 10px;
+        }
+
+        .popup-close:hover {
+            color: #333;
+        }
+
+        .popup-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: progress 3s linear;
+        }
+
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <span class="popup-icon" id="popupIcon"></span>
+            <span class="popup-message" id="popupMessage"></span>
+            <button class="popup-close" onclick="closePopup()">&times;</button>
+        </div>
+        <div class="popup-progress" id="popupProgress"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📊 Diabetes Health Tracker</h1>
+            <p>Add New Glucose Reading</p>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 Tips:</strong> Normal blood sugar range: Fasting: 70-100 mg/dL | After meals: <140 mg/dL
+        </div>
+
+        <form method="POST" id="glucoseForm">
+            {% csrf_token %}
+            
+            <!-- Basic Glucose Information -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Glucose Level (mg/dL) <span>*</span></label>
+                    <input type="number" name="glucose_level" step="0.1" min="0" max="600" required placeholder="e.g., 120">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date <span>*</span></label>
+                    <input type="date" name="date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Time <span>*</span></label>
+                    <input type="time" name="time" value="{{ current_time }}" required>
+                </div>
+            </div>
+
+            <!-- Reading Type -->
+            <div class="form-group">
+                <label>Reading Type <span>*</span></label>
+                <div class="reading-type-options">
+                    <div class="reading-type-option">
+                        <input type="radio" id="fasting" name="reading_type" value="fasting" required>
+                        <label for="fasting">Fasting</label>
+                    </div>
+                    <div class="reading-type-option">
+                        <input type="radio" id="before_meal" name="reading_type" value="before_meal">
+                        <label for="before_meal">Before Meal</label>
+                    </div>
+                    <div class="reading-type-option">
+                        <input type="radio" id="after_meal" name="reading_type" value="after_meal">
+                        <label for="after_meal">After Meal</label>
+                    </div>
+                    <div class="reading-type-option">
+                        <input type="radio" id="random" name="reading_type" value="random">
+                        <label for="random">Random</label>
+                    </div>
+                    <div class="reading-type-option">
+                        <input type="radio" id="bedtime" name="reading_type" value="bedtime">
+                        <label for="bedtime">Bedtime</label>
+                    </div>
+                    <div class="reading-type-option">
+                        <input type="radio" id="night" name="reading_type" value="night">
+                        <label for="night">Night (2-3 AM)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meal Information -->
+            <div class="form-group">
+                <label>Meal Type</label>
+                <select name="meal_type">
+                    <option value="">-- Select Meal Type --</option>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                    <option value="none">No Meal</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Food Description</label>
+                <textarea name="food_notes" rows="2" placeholder="What did you eat? (e.g., 2 chapati, vegetables, rice)"></textarea>
+            </div>
+
+            <!-- Medication / Insulin -->
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="medication_taken" name="medication_taken">
+                <label for="medication_taken">Medication Taken</label>
+            </div>
+
+            <div class="form-group">
+                <label>Medicine Name</label>
+                <input type="text" name="medicine_name" placeholder="e.g., Metformin, Glimepiride">
+            </div>
+
+            <div class="form-group">
+                <label>Insulin Dose (units)</label>
+                <input type="number" name="insulin_dose" step="0.5" min="0" placeholder="e.g., 10">
+            </div>
+
+            <!-- Physical Activity -->
+            <div class="form-group">
+                <label>Activity Type</label>
+                <select name="activity_type">
+                    <option value="">-- Select Activity --</option>
+                    <option value="walking">Walking</option>
+                    <option value="running">Running/Jogging</option>
+                    <option value="yoga">Yoga</option>
+                    <option value="gym">Gym/Weight Training</option>
+                    <option value="cycling">Cycling</option>
+                    <option value="swimming">Swimming</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Activity Duration (minutes)</label>
+                <input type="number" name="activity_duration" min="0" placeholder="e.g., 30">
+            </div>
+
+            <!-- Symptoms -->
+            <div class="form-group">
+                <label>Symptoms (select multiple with Ctrl/Cmd)</label>
+                <select name="symptoms" multiple size="5">
+                    <option value="dizziness">Dizziness</option>
+                    <option value="sweating">Sweating</option>
+                    <option value="fatigue">Fatigue</option>
+                    <option value="headache">Headache</option>
+                    <option value="blurred_vision">Blurred Vision</option>
+                    <option value="confusion">Confusion</option>
+                    <option value="irritability">Irritability</option>
+                    <option value="hunger">Extreme Hunger</option>
+                    <option value="thirst">Excessive Thirst</option>
+                    <option value="none">No Symptoms</option>
+                </select>
+                <small>Hold Ctrl (Cmd on Mac) to select multiple symptoms</small>
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="form-group">
+                <label>Additional Notes</label>
+                <textarea name="notes" rows="3" placeholder="Any other information..."></textarea>
+            </div>
+
+            <button type="submit" class="btn">Save Glucose Record</button>
+            <a href="{% url 'glucose' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+
+    <script>
+        // Form validation
+        document.getElementById('glucoseForm').addEventListener('submit', function(e) {
+            const glucose = document.querySelector('input[name="glucose_level"]').value;
+            const readingType = document.querySelector('input[name="reading_type"]:checked');
+            
+            if (!readingType) {
+                e.preventDefault();
+                showPopup('Please select a reading type', 'error');
+                return;
+            }
+            
+            if (glucose < 0 || glucose > 600) {
+                e.preventDefault();
+                showPopup('Please enter a valid glucose level (0-600 mg/dL)', 'error');
+                return;
+            }
+            
+            showPopup('Saving glucose record...', 'success');
+        });
+
+        // Popup functions
+        function showPopup(message, type) {
+            const popup = document.getElementById('popup');
+            const icon = document.getElementById('popupIcon');
+            const messageEl = document.getElementById('popupMessage');
+            const progress = document.getElementById('popupProgress');
+
+            popup.className = 'popup ' + type;
+            
+            if (type === 'success') {
+                icon.innerHTML = '✅';
+            } else {
+                icon.innerHTML = '❌';
+            }
+            
+            messageEl.textContent = message;
+            popup.style.display = 'block';
+
+            setTimeout(closePopup, 3000);
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        // Show Django messages as popups
+        {% if messages %}
+            {% for message in messages %}
+                window.onload = function() {
+                    showPopup("{{ message }}", "{{ message.tags }}");
+                }
+            {% endfor %}
+        {% endif %}
+    </script>
+</body>
+</html>
