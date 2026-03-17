@@ -78,12 +78,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'diabetes_db',
-
         'USER': 'postgres',
         'PASSWORD': 'postgres123',
         'HOST': 'localhost',
         'PORT': '5433',
-
     }
 }
 
