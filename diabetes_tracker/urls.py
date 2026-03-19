@@ -3,7 +3,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('tracker.urls')),   # include tracker ONCE only
+
+    # connect tracker app
+    path('', include('tracker.urls')),
+
+    # django login/logout
     path('accounts/', include('django.contrib.auth.urls')),
 ]
-
