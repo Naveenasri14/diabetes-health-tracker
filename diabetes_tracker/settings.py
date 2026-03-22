@@ -11,20 +11,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
-
+import os
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#56-fwxx@hgymzv_c2r9(9h_$hb@526y3of#h21kxkc3f7_-u7'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -75,24 +75,14 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
- 'default': {
-  'ENGINE': 'django.db.backends.postgresql',
-  'NAME': 'postgres',
-  'USER': 'postgres',
-  'PASSWORD': '1234',
-  'HOST': 'localhost',
-  'PORT': '5432',
- }
-
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'diabetes_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres123',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
-
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -139,19 +129,16 @@ LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 
 # Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'naveenarangaraju2006@gmail.com'  # ← YOUR EMAIL (hardcoded)
-EMAIL_HOST_PASSWORD = 'euru wvqq yppq urpb'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
-
 # Default from address (also hardcoded to your email)
 DEFAULT_FROM_EMAIL = 'Diabetes Tracker <naveenarangaraju2006@gmail.com>'
 
 # Twilio configuration
-TWILIO_ACCOUNT_SID = 'your-twilio-account-sid'
-TWILIO_AUTH_TOKEN = 'your-twilio-auth-token'
-TWILIO_PHONE_NUMBER = '+1234567890'  # Your Twilio phone number
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
