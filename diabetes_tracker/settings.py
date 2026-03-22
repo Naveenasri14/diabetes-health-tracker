@@ -9,16 +9,13 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
+from pathlib import Path
 import os
 from dotenv import load_dotenv
-
-load_dotenv()
-from pathlib import Path
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -87,7 +84,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -139,9 +135,6 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'naveenarangaraju2006@gmail.com'  # ← YOUR EMAIL (hardcoded)
-EMAIL_HOST_PASSWORD = 'euru wvqq yppq urpb'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
-
 # Default from address (also hardcoded to your email)
 DEFAULT_FROM_EMAIL = 'Diabetes Tracker <naveenarangaraju2006@gmail.com>'
 

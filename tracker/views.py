@@ -9,21 +9,31 @@ from datetime import datetime, date, timedelta
 import json
 
 from .models import GlucoseRecord, BPRecord, NotificationPreference, Reminder, NotificationLog
-
-
-# ---------------- AUTH ---------------- #
-
+from .models import UserProfile
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
+
+        role = request.POST.get('role')
+        region = request.POST.get('region')
+
         if form.is_valid():
-            form.save()
+            user = form.save()
+
+            # ✅ Create profile with role + community
+            UserProfile.objects.create(
+                user=user,
+                role=role,
+                region=region   # keep field name, just UI rename
+            )
+
             return redirect('/accounts/login/')
+
     else:
         form = UserCreationForm()
 
     return render(request, 'signup.html', {'form': form})
-
+# ---------------- AUTH ---------------- #
 
 def login_view(request):
     if request.method == 'POST':
@@ -351,3 +361,25 @@ def snooze_alarm(request, reminder_id):
 @login_required
 def ai_prediction(request):
     return render(request, "ai_prediction.html")
+@login_required
+def admin_dashboard(request):
+
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'health_worker':
+        return redirect('dashboard')
+
+    total_users = User.objects.count()
+
+    high_risk = GlucoseRecord.objects.filter(glucose_level__gt=250).count()
+
+    missed_medication = GlucoseRecord.objects.filter(medication_taken=False).count()
+
+    recent_alerts = NotificationLog.objects.all()[:10]
+
+    context = {
+        'total_users': total_users,
+        'high_risk': high_risk,
+        'missed_medication': missed_medication,
+        'recent_alerts': recent_alerts
+    }
+
+    return render(request, 'admin_dashboard.html', context)
