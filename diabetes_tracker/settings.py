@@ -11,20 +11,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
-
+import os
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#56-fwxx@hgymzv_c2r9(9h_$hb@526y3of#h21kxkc3f7_-u7'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -144,6 +144,6 @@ EMAIL_HOST_PASSWORD = 'ebpe ogeq gxim agyu'  # ← YOUR 16-CHARACTER APP PASSWOR
 DEFAULT_FROM_EMAIL = 'Diabetes Tracker <diabetestracker14@gmail.com>'
 
 # Twilio configuration
-TWILIO_ACCOUNT_SID = 'your-twilio-account-sid'
-TWILIO_AUTH_TOKEN = 'your-twilio-auth-token'
-TWILIO_PHONE_NUMBER = '+1234567890'  # Your Twilio phone number
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')

@@ -38,3 +38,4 @@ urlpatterns = [
     # Profile
     path('profile/', views.profile, name='profile'),
 ]
+path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

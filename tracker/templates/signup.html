@@ -242,7 +242,20 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             animation: progress 3s linear;
         }
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+        }
 
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
         @keyframes progress {
             from {
                 width: 100%;
@@ -308,7 +321,22 @@
                     <i>•</i> At least one special character
                 </div>
             </div>
+            <!-- Role Selection -->
+            <div class="form-group">
+               <label for="role">Select Role</label>
+               <select name="role" id="role" required>
+                   <option value="">-- Choose Role --</option>
+                   <option value="patient">Patient</option>
+                   <option value="caregiver">Caregiver</option>
+                   <option value="health_worker">Health Worker</option>
+               </select>
+            </div>
 
+            <!-- Region Field -->
+            <div class="form-group">
+                <label for="region">Region / Area</label>
+                <input type="text" name="region" id="region" placeholder="Enter your area or locality">
+            </div>
             <button type="submit" class="btn">Create Account</button>
         </form>
 
