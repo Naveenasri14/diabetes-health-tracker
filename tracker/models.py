@@ -126,6 +126,13 @@ class BPRecord(models.Model):
 
 
 class NotificationPreference(models.Model):
+    CARRIER_CHOICES = [
+        ('airtel', 'Airtel'),
+        ('jio', 'Jio'),
+        ('vi', 'Vi (Vodafone Idea)'),
+        ('bsnl', 'BSNL'),
+        ('other', 'Other'),
+    ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_prefs')
 
@@ -136,6 +143,7 @@ class NotificationPreference(models.Model):
     whatsapp_enabled = models.BooleanField(default=False)
 
     phone_number = models.CharField(max_length=20, blank=True)
+    carrier = models.CharField(max_length=20, choices=CARRIER_CHOICES, blank=True)
     whatsapp_number = models.CharField(max_length=20, blank=True)
     email_address = models.EmailField(blank=True)
 

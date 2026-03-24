@@ -272,38 +272,31 @@
 
         <!-- Info Box -->
         <div class="info-box">
-            <strong>🔔 How Alarms Work:</strong> When it's time, a full-screen alarm will pop up with sound until you dismiss or snooze it.
-        </div>
-        <!-- Add this AFTER the info box and BEFORE the Create New Alarm card -->
-
-<!-- Notification Preferences Card -->
-<div class="card">
-    <h2>📱 notification preferences</h2>
-    
-    <form method="POST" action="{% url 'reminder_settings' %}">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" name="email_enabled" {% if prefs.email_enabled %}checked{% endif %}>
-                📧 Email Notifications
-            </label>
-            <input type="email" name="email_address" value="{{ prefs.email_address }}" placeholder="your@email.com" style="margin-top: 10px;">
-            <small style="color: #666;">We'll send email alerts to this address</small>
+            <strong>🔔 How Alarms Work:</strong> When it's time, you'll receive an email alert. Make sure your email is set correctly below.
         </div>
 
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" name="sms_enabled" {% if prefs.sms_enabled %}checked{% endif %}>
-                📱 SMS Notifications
-            </label>
-            <input type="tel" name="phone_number" value="{{ prefs.phone_number }}" placeholder="+1234567890" style="margin-top: 10px;">
-            <small style="color: #666;">Include country code (e.g., +1 for US, +91 for India)</small>
-        </div>
+        <!-- Notification Preferences Card - EMAIL ONLY -->
+        <div class="card">
+            <h2>📧 notification preferences</h2>
+            
+            <form method="POST" action="{% url 'reminder_settings' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="email_enabled" {% if prefs.email_enabled %}checked{% endif %}>
+                        📧 Email Notifications
+                    </label>
+                    <input type="email" name="email_address" value="{{ prefs.email_address }}" 
+                           placeholder="your@email.com" style="margin-top: 10px;">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        We'll send email alerts to this address. Most mobile phones show email notifications instantly.
+                    </small>
+                </div>
 
-        <button type="submit" class="btn" style="margin-top: 20px;">💾 Save Preferences</button>
-    </form>
-</div>
+                <button type="submit" class="btn" style="margin-top: 20px;">💾 Save Preferences</button>
+            </form>
+        </div>
 
         <!-- Create New Alarm Card -->
         <div class="card">

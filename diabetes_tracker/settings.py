@@ -79,20 +79,12 @@ DATABASES = {
   'ENGINE': 'django.db.backends.postgresql',
   'NAME': 'postgres',
   'USER': 'postgres',
-  'PASSWORD': '1234',
+  'PASSWORD': 'postgre123',
   'HOST': 'localhost',
-  'PORT': '5432',
+  'PORT': '5433',
  }
 
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'diabetes_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres123',
-        'HOST': 'localhost',
-        'PORT': '5433',
-    }
-
+    
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -140,16 +132,16 @@ LOGIN_URL = '/accounts/login/'
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'naveenarangaraju2006@gmail.com'  # ← YOUR EMAIL (hardcoded)
-EMAIL_HOST_PASSWORD = 'euru wvqq yppq urpb'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
+EMAIL_HOST_USER = 'diabetestracker14@gmail.com'  # ← YOUR EMAIL (hardcoded)
+EMAIL_HOST_PASSWORD = 'ebpe ogeq gxim agyu'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
 
 # Default from address (also hardcoded to your email)
-DEFAULT_FROM_EMAIL = 'Diabetes Tracker <naveenarangaraju2006@gmail.com>'
+DEFAULT_FROM_EMAIL = 'Diabetes Tracker <diabetestracker14@gmail.com>'
 
 # Twilio configuration
 TWILIO_ACCOUNT_SID = 'your-twilio-account-sid'

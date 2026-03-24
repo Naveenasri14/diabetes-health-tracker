@@ -2,7 +2,6 @@
 
 from django.core.mail import send_mail
 from django.conf import settings
-from twilio.rest import Client
 import requests
 from datetime import datetime
 import logging

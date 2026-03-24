@@ -18,7 +18,7 @@ def signup(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('/accounts/login/')
+            return redirect('login')
     else:
         form = UserCreationForm()
 
@@ -207,6 +207,7 @@ def reminder_settings(request):
         prefs.sms_enabled = request.POST.get('sms_enabled') == 'on'
         prefs.email_address = request.POST.get('email_address', '')
         prefs.phone_number = request.POST.get('phone_number', '')
+        prefs.carrier = request.POST.get('carrier', '') 
 
         prefs.save()
 
