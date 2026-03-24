@@ -6,13 +6,15 @@ urlpatterns = [
     # Home / Signup
     path('', views.signup, name='home'),
     path('signup/', views.signup, name='signup'),
-
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
 
     # Health Records
     path('add/', views.add_record, name='add_record'),
     path('add-bp/', views.add_bp, name='add_bp'),
+
 
     # Glucose and BP pages
     path('glucose/', views.glucose_page, name='glucose'),

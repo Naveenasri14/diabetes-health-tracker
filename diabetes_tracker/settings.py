@@ -75,14 +75,16 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-    }
+ 'default': {
+  'ENGINE': 'django.db.backends.postgresql',
+  'NAME': 'postgres',
+  'USER': 'postgres',
+  'PASSWORD': 'postgre123',
+  'HOST': 'localhost',
+  'PORT': '5433',
+ }
+
+    
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -129,14 +131,17 @@ LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 
 # Email configuration
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'diabetestracker14@gmail.com'  # ← YOUR EMAIL (hardcoded)
+EMAIL_HOST_PASSWORD = 'ebpe ogeq gxim agyu'  # ← YOUR 16-CHARACTER APP PASSWORD (hardcoded)
+
 # Default from address (also hardcoded to your email)
-DEFAULT_FROM_EMAIL = 'Diabetes Tracker <naveenarangaraju2006@gmail.com>'
+DEFAULT_FROM_EMAIL = 'Diabetes Tracker <diabetestracker14@gmail.com>'
 
 # Twilio configuration
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
