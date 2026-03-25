@@ -6,8 +6,15 @@ urlpatterns = [
     # Home / Signup
     path('', views.signup, name='home'),
     path('signup/', views.signup, name='signup'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
+    
+    # Accounts (with /accounts/ prefix)
+    path('accounts/login/', views.login_view, name='login'),
+    path('accounts/logout/', views.logout_view, name='logout'),
+    
+    # Alternative direct login (optional)
+    path('login/', views.login_view, name='login_alt'),
+    path('logout/', views.logout_view, name='logout_alt'),
+    
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
 
@@ -15,12 +22,11 @@ urlpatterns = [
     path('add/', views.add_record, name='add_record'),
     path('add-bp/', views.add_bp, name='add_bp'),
 
-
     # Glucose and BP pages
     path('glucose/', views.glucose_page, name='glucose'),
     path('bp/', views.bp_page, name='bp'),
 
-    # ✅ AI Prediction Page (ADD THIS)
+    # AI Prediction Page
     path('ai-prediction/', views.ai_prediction, name='ai_prediction'),
 
     # Reminder Settings
@@ -37,5 +43,7 @@ urlpatterns = [
 
     # Profile
     path('profile/', views.profile, name='profile'),
+    
+    # Admin Dashboard
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
 ]
-path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
