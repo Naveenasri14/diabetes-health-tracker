@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Myth vs Fact - Diabetes Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+        }
+        .myth-card {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .myth-section {
+            background: #ffebee;
+            padding: 25px;
+            border-bottom: 2px solid #ffcdd2;
+        }
+        .myth-section h3 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+        .myth-section p {
+            color: #b71c1c;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .fact-section {
+            background: #e8f5e9;
+            padding: 25px;
+        }
+        .fact-section h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .fact-section p {
+            color: #1b5e20;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .explanation {
+            background: #f5f5f5;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #555;
+            font-size: 14px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Myth vs Fact</h1>
+            <p>Separate diabetes myths from facts</p>
+        </div>
+
+        <!-- Myth 1 -->
+        <div class="myth-card">
+            <div class="myth-section">
+                <h3>❌ MYTH</h3>
+                <p>Diabetes is curable</p>
+            </div>
+            <div class="fact-section">
+                <h3>✅ FACT</h3>
+                <p>Diabetes is a chronic condition that can be managed but not cured</p>
+            </div>
+            <div class="explanation">
+                <strong>📝 Explanation:</strong> While there's no cure for diabetes, it can be well managed through diet, exercise, and medication. Many people with diabetes live healthy, active lives.
+            </div>
+        </div>
+
+        <!-- Myth 2 -->
+        <div class="myth-card">
+            <div class="myth-section">
+                <h3>❌ MYTH</h3>
+                <p>Eating sugar causes diabetes</p>
+            </div>
+            <div class="fact-section">
+                <h3>✅ FACT</h3>
+                <p>Sugar itself doesn't cause diabetes</p>
+            </div>
+            <div class="explanation">
+                <strong>📝 Explanation:</strong> Type 1 diabetes is autoimmune. Type 2 is related to genetics, lifestyle factors, and overall diet quality - not just sugar consumption.
+            </div>
+        </div>
+
+        <!-- Myth 3 -->
+        <div class="myth-card">
+            <div class="myth-section">
+                <h3>❌ MYTH</h3>
+                <p>Diabetics cannot eat fruits</p>
+            </div>
+            <div class="fact-section">
+                <h3>✅ FACT</h3>
+                <p>Fruits are healthy and can be eaten in moderation</p>
+            </div>
+            <div class="explanation">
+                <strong>📝 Explanation:</strong> Whole fruits contain fiber and nutrients. Choose whole fruits over juice, limit portions, and pair with protein for better blood sugar control.
+            </div>
+        </div>
+
+        <!-- Myth 4 -->
+        <div class="myth-card">
+            <div class="myth-section">
+                <h3>❌ MYTH</h3>
+                <p>Insulin cures diabetes</p>
+            </div>
+            <div class="fact-section">
+                <h3>✅ FACT</h3>
+                <p>Insulin manages diabetes, it does not cure it</p>
+            </div>
+            <div class="explanation">
+                <strong>📝 Explanation:</strong> Insulin helps control blood sugar but diabetes is a chronic condition that requires ongoing management throughout life.
+            </div>
+        </div>
+
+        <!-- Myth 5 -->
+        <div class="myth-card">
+            <div class="myth-section">
+                <h3>❌ MYTH</h3>
+                <p>Only overweight people get diabetes</p>
+            </div>
+            <div class="fact-section">
+                <h3>✅ FACT</h3>
+                <p>Anyone can develop diabetes, regardless of weight</p>
+            </div>
+            <div class="explanation">
+                <strong>📝 Explanation:</strong> Type 1 diabetes is autoimmune. Type 2 has genetic factors too. Weight is only one of many risk factors.
+            </div>
+        </div>
+
+        <a href="{% url 'education_home' %}" class="back-link">← Back to Education</a>
+    </div>
+</body>
+</html>
