@@ -10,6 +10,8 @@ import json
 
 from .models import GlucoseRecord, BPRecord, NotificationPreference, Reminder, NotificationLog
 from .models import UserProfile
+
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -18,12 +20,22 @@ def signup(request):
         region = request.POST.get('region')
 
         if form.is_valid():
-            form.save()
+            user = form.save()
+            
+            # Save user profile with role and region
+            UserProfile.objects.create(
+                user=user,
+                role=role,
+                region=region
+            )
+            
             return redirect('login')
     else:
         form = UserCreationForm()
 
     return render(request, 'signup.html', {'form': form})
+
+
 # ---------------- AUTH ---------------- #
 
 def login_view(request):
@@ -230,23 +242,51 @@ def reminder_settings(request):
 
 @login_required
 def add_reminder(request):
-
+    """Add a new reminder"""
     if request.method == 'POST':
-
-        Reminder.objects.create(
-            user=request.user,
-            reminder_type=request.POST.get('reminder_type'),
-            title=request.POST.get('title'),
-            description=request.POST.get('description', ''),
-            frequency=request.POST.get('frequency'),
-            reminder_time=request.POST.get('reminder_time'),
-            start_date=request.POST.get('start_date') or date.today(),
-            is_active=True
-        )
-
-        messages.success(request, 'Reminder created successfully!')
-        return redirect('reminder_settings')
-
+        try:
+            # Get start date
+            start_date_str = request.POST.get('start_date')
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else date.today()
+            
+            # Get days of week (for weekly reminders)
+            days_of_week = request.POST.get('days_of_week', '')
+            
+            # For one-time reminders, specific_date = start_date
+            frequency = request.POST.get('frequency')
+            specific_date = None
+            if frequency == 'once':
+                specific_date = start_date
+            
+            reminder = Reminder(
+                user=request.user,
+                reminder_type=request.POST.get('reminder_type'),
+                title=request.POST.get('title'),
+                description=request.POST.get('description', ''),
+                frequency=frequency,
+                reminder_time=request.POST.get('reminder_time'),
+                start_date=start_date,
+                specific_date=specific_date,
+                days_of_week=days_of_week,
+                medication_name=request.POST.get('medication_name', ''),
+                medication_dosage=request.POST.get('medication_dosage', ''),
+                test_condition=request.POST.get('test_condition', ''),
+                is_active=True,
+                notify_in_app=True,
+                notify_email=True,
+                notify_sms=False,
+                notify_whatsapp=False,
+                override_quiet_hours=False,
+            )
+            reminder.save()
+            
+            messages.success(request, '✅ Reminder created successfully!')
+            return redirect('reminder_settings')
+            
+        except Exception as e:
+            messages.error(request, f'❌ Error creating reminder: {str(e)}')
+            return redirect('reminder_settings')
+    
     return redirect('reminder_settings')
 
 
@@ -308,11 +348,11 @@ def check_active_alarms(request):
         user=request.user,
         is_active=True,
         start_date__lte=now.date(),
-        reminder_time__lte=now.time()
+        reminder_time__hour=now.hour,
+        reminder_time__minute=now.minute
     ).first()
 
     if active:
-
         return JsonResponse({
             'has_alarm': True,
             'reminder_id': active.id,
@@ -320,6 +360,8 @@ def check_active_alarms(request):
         })
 
     return JsonResponse({'has_alarm': False})
+
+
 @login_required
 def snooze_alarm(request, reminder_id):
     """Snooze an alarm for 5 minutes"""
@@ -348,12 +390,18 @@ def snooze_alarm(request, reminder_id):
 
     return redirect('dashboard')
 
+
 # ---------------- AI DIABETES PREDICTION ---------------- #
 
 @login_required
 def ai_prediction(request):
     return render(request, "ai_prediction.html")
+<<<<<<< naveena
 <<<<<<< HEAD
+=======
+
+
+>>>>>>> main
 @login_required
 def admin_dashboard(request):
 
