@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Health Education - Diabetes Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        .card-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Health Education & Awareness</h1>
+            <p>Learn to manage diabetes better with our educational resources</p>
+        </div>
+
+        <div class="cards-grid">
+            <a href="{% url 'video_tutorials' %}" class="card">
+                <div class="card-icon">🎥</div>
+                <h2>Video Tutorials</h2>
+                <p>Watch step-by-step guides on insulin injection, foot care, and healthy cooking.</p>
+            </a>
+
+            <a href="{% url 'myth_fact' %}" class="card">
+                <div class="card-icon">📖</div>
+                <h2>Myth vs Fact</h2>
+                <p>Separate diabetes myths from facts with expert explanations.</p>
+            </a>
+
+            <a href="{% url 'health_tips' %}" class="card">
+                <div class="card-icon">🔊</div>
+                <h2>Audio Learning Mode</h2>
+                <p>Listen to health tips and learn on the go!</p>
+            </a>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

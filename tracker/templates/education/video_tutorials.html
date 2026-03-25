@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Tutorials - Diabetes Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+        }
+        .video-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .video-thumbnail {
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            cursor: pointer;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .play-icon {
+            font-size: 80px;
+            color: white;
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        .video-thumbnail:hover .play-icon {
+            transform: scale(1.2);
+        }
+        .video-thumbnail p {
+            color: #aaa;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .video-info {
+            padding: 25px;
+        }
+        .video-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .video-info p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .watch-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: transform 0.3s;
+        }
+        .watch-btn:hover {
+            transform: translateY(-2px);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        .category-title {
+            color: white;
+            font-size: 28px;
+            margin: 30px 0 20px;
+            padding-left: 15px;
+            border-left: 5px solid #ffd700;
+        }
+        .video-stats {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Video Tutorials</h1>
+            <p>Learn essential diabetes management skills</p>
+        </div>
+
+        <!-- Insulin Injection Tutorial -->
+        <div class="category-title">💉 Insulin Management</div>
+        <div class="video-card">
+            <div class="video-thumbnail" onclick="window.open('https://www.youtube.com/watch?v=bBZXkNbpOGQ', '_blank')">
+                <div class="play-icon">▶</div>
+                <p>Click to play on YouTube</p>
+            </div>
+            <div class="video-info">
+                <h2>How to Inject Insulin Using a Syringe</h2>
+                <p>This 3D medical animation shows how to inject insulin using a syringe. Patients can watch this video to better understand their condition and how to treat it.</p>
+                <div class="video-stats">
+                    📅 Published: November 15, 2015 | 👁️ 1.1M+ views | ⏱️ Duration: ~3 minutes
+                </div>
+                <a href="https://www.youtube.com/watch?v=bBZXkNbpOGQ" target="_blank" class="watch-btn">
+                    ▶ Watch Video on YouTube
+                </a>
+            </div>
+        </div>
+
+        <!-- Foot Care Tutorial -->
+        <div class="category-title">🦶 Foot Care</div>
+        <div class="video-card">
+            <div class="video-thumbnail" onclick="window.open('https://www.youtube.com/watch?v=aZvI9zElGX0', '_blank')">
+                <div class="play-icon">▶</div>
+                <p>Click to play on YouTube</p>
+            </div>
+            <div class="video-info">
+                <h2>Proper Foot Care for Diabetics</h2>
+                <p>Essential foot care tips to prevent complications, daily inspection, and proper footwear. Learn how to protect your feet from diabetic foot problems.</p>
+                <div class="video-stats">⏱️ Duration: ~5 minutes</div>
+                <a href="https://www.youtube.com/watch?v=aZvI9zElGX0" target="_blank" class="watch-btn">
+                    ▶ Watch Video on YouTube
+                </a>
+            </div>
+        </div>
+
+        
+
+        <a href="{% url 'education_home' %}" class="back-link">← Back to Education</a>
+    </div>
+</body>
+</html>

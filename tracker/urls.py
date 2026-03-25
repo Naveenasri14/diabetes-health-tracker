@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import add_record
 
 urlpatterns = [
 
@@ -46,6 +47,14 @@ urlpatterns = [
     path('dismiss-alarm/<int:reminder_id>/', views.dismiss_alarm, name='dismiss_alarm'),
     path('snooze-alarm/<int:reminder_id>/', views.snooze_alarm, name='snooze_alarm'),
     path('check-active-alarms/', views.check_active_alarms, name='check_alarms'),
+    path('profile/', views.profile, name='profile'),
+    path('add-sugar/', add_record, name='add_record'),
+    # Add these to urlpatterns
+    path('education/', views.education_home, name='education_home'),
+    path('education/videos/', views.video_tutorials, name='video_tutorials'),
+    path('education/myth-fact/', views.myth_fact, name='myth_fact'),
+    path('education/tips/', views.health_tips, name='health_tips'),
+]
 
     # Profile
     path('profile/', views.profile, name='profile'),

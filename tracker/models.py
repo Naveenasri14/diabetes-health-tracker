@@ -243,6 +243,97 @@ class NotificationLog(models.Model):
     class Meta:
         ordering = ['-sent_at']
 
+class BloodSugarRecord(models.Model):
+    READING_TYPE_CHOICES = [
+        ('fasting', 'Fasting'),
+        ('post_meal', 'Post Meal'),
+        ('random', 'Random'),
+        ('before_sleep', 'Before Sleep'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reading_type = models.CharField(max_length=20, choices=READING_TYPE_CHOICES)
+    value = models.FloatField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.reading_type} - {self.value}"
+
+# Add these new models at the end of your models.py
+
+class VideoTutorial(models.Model):
+    """Video tutorials for diabetes education"""
+    VIDEO_TYPES = [
+        ('insulin', 'Insulin Injection Demo'),
+        ('foot_care', 'Foot Care Demo'),
+        ('cooking', 'Healthy Cooking Guide'),
+        ('glucose_monitoring', 'Glucose Monitoring'),
+        ('exercise', 'Exercise Guide'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    video_type = models.CharField(max_length=20, choices=VIDEO_TYPES)
+    youtube_url = models.URLField(help_text="YouTube video URL")
+    description = models.TextField(blank=True)
+    duration = models.CharField(max_length=50, blank=True, help_text="Video duration, e.g., 5:30")
+    thumbnail = models.URLField(blank=True, help_text="Thumbnail image URL")
+    order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Video Tutorial"
+        verbose_name_plural = "Video Tutorials"
+    
+    def __str__(self):
+        return self.title
+
+class MythFact(models.Model):
+    """Myth vs Fact educational content"""
+    myth = models.CharField(max_length=300)
+    fact = models.TextField()
+    explanation = models.TextField(blank=True, help_text="Detailed explanation")
+    category = models.CharField(max_length=100, blank=True, help_text="e.g., Diet, Medication, Exercise")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Myth & Fact"
+        verbose_name_plural = "Myths & Facts"
+    
+    def __str__(self):
+        return f"Myth: {self.myth[:50]}..."
+
+class HealthTip(models.Model):
+    """Audio health tips"""
+    TIP_CATEGORIES = [
+        ('diet', 'Diet & Nutrition'),
+        ('exercise', 'Physical Activity'),
+        ('medication', 'Medication'),
+        ('foot_care', 'Foot Care'),
+        ('glucose', 'Glucose Monitoring'),
+        ('general', 'General Health'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    category = models.CharField(max_length=20, choices=TIP_CATEGORIES)
+    content = models.TextField(help_text="Tip content for text display")
+    audio_url = models.URLField(blank=True, help_text="URL to audio file (MP3)")
+    duration = models.CharField(max_length=20, blank=True, help_text="Audio duration")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Health Tip"
+        verbose_name_plural = "Health Tips"
+    
+    def __str__(self):
+        return self.title
     def __str__(self):
         return f"{self.user.username} - {self.notification_type} - {self.status}"
 
