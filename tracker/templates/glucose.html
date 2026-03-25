@@ -207,10 +207,39 @@
 </head>
 <body>
     <div class="container">
+
+        {% if high_alert %}
+        <div style="background:#ffebee; color:#c62828; padding:15px; border-radius:10px; margin-bottom:15px;">
+            🚨 Warning: Your last 3 readings are high! Please consult doctor or adjust diet.
+        </div>
+        {% endif %}
+        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h1>📊 Glucose Records</h1>
             <a href="{% url 'add_record' %}" class="add-btn">+ Add New Reading</a>
         </div>
+    <!-- your existing content continues -->
+        <h3>Diabetes Control Status</h3>
+        {% if control_status == "controlled" %}
+        <p style="color:green; font-weight:bold;">🟢 Controlled</p>
+        {% elif control_status == "moderate" %}
+        <p style="color:orange; font-weight:bold;">🟡 Moderate</p>
+        {% elif control_status == "poor" %}
+        <p style="color:red; font-weight:bold;">🔴 Poor Control</p>
+        {% else %}
+        <p>No data available</p>
+        {% endif %}
+
+        <h3>Achievements</h3>
+        {% if badge_7_days %}
+        <p style="color:green; font-weight:bold;">
+            🏆 7 Days in Control!
+        </p>
+        {% else %}
+        <p style="color:gray;">
+            Keep tracking to earn "7 Days in Control" badge 💪
+        </p>
+        {% endif %}
         
         <!-- Statistics -->
         <div class="stats">

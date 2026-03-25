@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Health Tips - Diabetes Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .tip-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .tip-title {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .tip-content {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .audio-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+        .audio-btn:hover {
+            transform: scale(1.05);
+        }
+        .stop-btn {
+            background: #f44336;
+        }
+        .voice-select {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .voice-select label {
+            font-weight: 600;
+            color: #333;
+        }
+        .voice-select button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .voice-select button:hover {
+            transform: scale(1.05);
+        }
+        .voice-select button.active {
+            background: #4caf50;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #4caf50;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔊 Audio Learning Mode</h1>
+            <p>Listen to health tips in clear English - Choose your preferred voice</p>
+        </div>
+
+        <!-- Simple Voice Selection -->
+        <div class="voice-select">
+            <label>🎤 Choose Voice:</label>
+            <button id="femaleVoiceBtn" onclick="selectFemaleVoice()" class="active">👩 Female Voice</button>
+            <button id="maleVoiceBtn" onclick="selectMaleVoice()">👨 Male Voice</button>
+            <span style="font-size: 12px; color: #888;">(Clear English for everyone)</span>
+        </div>
+
+        <!-- Tip 1: Stay Hydrated -->
+        <div class="tip-card">
+            <h3 class="tip-title">💧 Drink Water</h3>
+            <p class="tip-content">Drink 8 to 10 glasses of water every day. Water helps control blood sugar. Always keep a water bottle with you.</p>
+            <button class="audio-btn" onclick="speakText('Drink 8 to 10 glasses of water every day. Water helps control blood sugar. Always keep a water bottle with you.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Tip 2: Check Your Feet -->
+        <div class="tip-card">
+            <h3 class="tip-title">👣 Check Your Feet</h3>
+            <p class="tip-content">Look at your feet every day. Check for cuts, blisters, or red spots. Diabetes can make feet feel numb. Use a mirror to see the bottom.</p>
+            <button class="audio-btn" onclick="speakText('Look at your feet every day. Check for cuts, blisters, or red spots. Diabetes can make feet feel numb. Use a mirror to see the bottom.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Tip 3: Walk Daily -->
+        <div class="tip-card">
+            <h3 class="tip-title">🏃 Walk Every Day</h3>
+            <p class="tip-content">Walk for 30 minutes daily. Walking helps control blood sugar. Start slowly, then walk faster. It is good for your heart too.</p>
+            <button class="audio-btn" onclick="speakText('Walk for 30 minutes daily. Walking helps control blood sugar. Start slowly, then walk faster. It is good for your heart too.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Tip 4: Eat Healthy -->
+        <div class="tip-card">
+            <h3 class="tip-title">🍎 Eat Healthy Food</h3>
+            <p class="tip-content">Eat vegetables, fruits, and whole grains. Eat at regular times. Do not skip meals. This helps keep blood sugar steady.</p>
+            <button class="audio-btn" onclick="speakText('Eat vegetables, fruits, and whole grains. Eat at regular times. Do not skip meals. This helps keep blood sugar steady.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Tip 5: Relax Your Mind -->
+        <div class="tip-card">
+            <h3 class="tip-title">😌 Relax Your Mind</h3>
+            <p class="tip-content">Stress increases blood sugar. Take deep breaths. Sit quietly for 5 minutes. Listen to music. Sleep well at night.</p>
+            <button class="audio-btn" onclick="speakText('Stress increases blood sugar. Take deep breaths. Sit quietly for 5 minutes. Listen to music. Sleep well at night.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Tip 6: Take Medicine -->
+        <div class="tip-card">
+            <h3 class="tip-title">💊 Take Medicine on Time</h3>
+            <p class="tip-content">Take your medicine at the same time every day. Set a reminder on your phone. Do not miss doses. Ask your doctor if you have questions.</p>
+            <button class="audio-btn" onclick="speakText('Take your medicine at the same time every day. Set a reminder on your phone. Do not miss doses. Ask your doctor if you have questions.')">
+                🔊 Listen
+            </button>
+            <button class="audio-btn stop-btn" onclick="stopSpeaking()">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <a href="{% url 'education_home' %}" class="back-link">← Back to Education</a>
+    </div>
+
+    <script>
+        let currentVoice = null;
+        let voices = [];
+        
+        // Find good female and male voices
+        function findVoices() {
+            voices = window.speechSynthesis.getVoices();
+            
+            // Find female voice (Samantha, Google UK Female, Microsoft Zira)
+            const femaleVoice = voices.find(v => 
+                v.name.includes('Samantha') || 
+                v.name.includes('Google UK English Female') ||
+                v.name.includes('Microsoft Zira') ||
+                v.name.includes('Victoria') ||
+                (v.lang === 'en-US' && v.name.includes('Female'))
+            );
+            
+            // Find male voice
+            const maleVoice = voices.find(v => 
+                v.name.includes('Google UK English Male') ||
+                v.name.includes('Microsoft David') ||
+                v.name.includes('Alex') ||
+                (v.lang === 'en-US' && v.name.includes('Male'))
+            );
+            
+            // Fallback: use any English voice
+            const anyEnglishVoice = voices.find(v => v.lang.startsWith('en'));
+            
+            return {
+                female: femaleVoice || anyEnglishVoice,
+                male: maleVoice || anyEnglishVoice
+            };
+        }
+        
+        function selectFemaleVoice() {
+            const found = findVoices();
+            currentVoice = found.female;
+            
+            // Update button styles
+            document.getElementById('femaleVoiceBtn').classList.add('active');
+            document.getElementById('maleVoiceBtn').classList.remove('active');
+            
+            // Short feedback
+            speakText('Female voice selected');
+            setTimeout(() => stopSpeaking(), 1500);
+        }
+        
+        function selectMaleVoice() {
+            const found = findVoices();
+            currentVoice = found.male;
+            
+            // Update button styles
+            document.getElementById('maleVoiceBtn').classList.add('active');
+            document.getElementById('femaleVoiceBtn').classList.remove('active');
+            
+            // Short feedback
+            speakText('Male voice selected');
+            setTimeout(() => stopSpeaking(), 1500);
+        }
+        
+        function speakText(text) {
+            // Stop any currently playing speech
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            
+            // Create new speech utterance
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;  // Slower for better understanding
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            // Use selected voice or find a default
+            if (currentVoice) {
+                utterance.voice = currentVoice;
+            } else {
+                const found = findVoices();
+                utterance.voice = found.female || found.male;
+            }
+            
+            // Speak
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        function stopSpeaking() {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+        }
+        
+        // Load voices when page loads
+        window.speechSynthesis.onvoiceschanged = function() {
+            const found = findVoices();
+            currentVoice = found.female;
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const found = findVoices();
+                currentVoice = found.female;
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,7 @@
+from urllib import request
+from django.utils import timezone
 from django.shortcuts import render , redirect , get_object_or_404
+from .models import BloodSugarRecord
 from .models import GlucoseRecord, BPRecord , NotificationPreference, Reminder
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -10,6 +13,65 @@ import json
 from .models import NotificationPreference, Reminder
 from django.contrib import messages
 from django.http import JsonResponse
+from collections import defaultdict
+from statistics import median
+from .models import VideoTutorial, MythFact, HealthTip
+
+def education_home(request):
+    """Health Education homepage"""
+    videos = VideoTutorial.objects.filter(is_active=True)
+    myths = MythFact.objects.filter(is_active=True)[:5]  # Show 5 myths
+    tips = HealthTip.objects.filter(is_active=True)[:5]  # Show 5 tips
+    
+    context = {
+        'videos': videos,
+        'myths': myths,
+        'tips': tips,
+    }
+    return render(request, 'education/education_home.html', context)
+
+def video_tutorials(request):
+    """Video tutorials page"""
+    videos = VideoTutorial.objects.filter(is_active=True)
+    
+    # Group by type
+    videos_by_type = {}
+    for video in videos:
+        if video.video_type not in videos_by_type:
+            videos_by_type[video.video_type] = []
+        videos_by_type[video.video_type].append(video)
+    
+    context = {
+        'videos_by_type': videos_by_type,
+        'video_types': VideoTutorial.VIDEO_TYPES,
+    }
+    return render(request, 'education/video_tutorials.html', context)
+
+def myth_fact(request):
+    """Myth vs Fact page"""
+    myths = MythFact.objects.filter(is_active=True)
+    
+    context = {
+        'myths': myths,
+    }
+    return render(request, 'education/myth_fact.html', context)
+
+def health_tips(request):
+    """Audio health tips page"""
+    tips = HealthTip.objects.filter(is_active=True)
+    
+    # Group by category
+    tips_by_category = {}
+    for tip in tips:
+        if tip.category not in tips_by_category:
+            tips_by_category[tip.category] = []
+        tips_by_category[tip.category].append(tip)
+    
+    context = {
+        'tips_by_category': tips_by_category,
+        'categories': HealthTip.TIP_CATEGORIES,
+    }
+    return render(request, 'education/health_tips.html', context)
 
 @login_required
 def reminder_settings(request):
@@ -188,6 +250,14 @@ def glucose_page(request):
         
         # Calculate estimated A1C (average glucose to A1C conversion)
         estimated_a1c = (avg_glucose + 46.7) / 28.7
+
+        # Determine control status
+        if estimated_a1c < 7:
+            control_status = "controlled"
+        elif estimated_a1c < 8:
+           control_status = "moderate"
+        else:
+         control_status = "poor"
         
         # Get today's reading
         today = datetime.now().date()
@@ -198,6 +268,15 @@ def glucose_page(request):
         # Calculate in-range percentage
         in_range = normal_count
         in_range_percent = round((in_range / total_records) * 100, 1)
+
+        # Diabetes Control Score (0–100)
+        consistency_score = min(total_records * 2, 40)  
+        # max 40 points
+        range_score = in_range_percent  
+        # max 100 but we scale
+        diabetes_score = int((consistency_score * 0.4) + (range_score * 0.6))
+        # Limit to 100
+        diabetes_score = min(diabetes_score, 100)
         
         # Medication percentage
         med_count = sum(1 for r in records if r.medication_taken)
@@ -239,8 +318,36 @@ def glucose_page(request):
         chart_labels = []
         chart_values = []
         chart_types = []
+        control_status = "unknown"
+        diabetes_score = 0
+        badge_7_days = False
+        high_alert = False
     
+    # Check last 7 days control
+    seven_days_ago = datetime.now().date() - timedelta(days=7)
+    last_7_days = records.filter(date__gte=seven_days_ago)
+
+    good_days = 0
+    for record in last_7_days:
+        if record.get_glucose_category() == 'normal':
+            good_days += 1
+
+    badge_7_days = good_days >= 7
+    # Detect high sugar pattern (last 3 readings)
+    recent_3 = records[:3]
+    high_alert = False
+
+    if len(recent_3) == 3:
+        if all(r.glucose_level > 180 for r in recent_3):
+            high_alert = True
+
+
+    # ✅ FINAL CONTEXT (OUTSIDE ALL LOOPS)
     context = {
+        'high_alert': high_alert,
+        'badge_7_days': badge_7_days,
+        'diabetes_score': diabetes_score,
+        'control_status': control_status,
         'glucose_records': records,
         'avg_glucose': round(avg_glucose, 1),
         'high_count': high_count,
@@ -256,12 +363,12 @@ def glucose_page(request):
         'chart_labels': json.dumps(chart_labels),
         'chart_values': json.dumps(chart_values),
         'chart_types': json.dumps(chart_types),
-        'best_time': 'morning',  # You can calculate this from data
-        'meal_impact': 40,  # You can calculate this from data
+        'best_time': 'morning',
+        'meal_impact': 40,
     }
     return render(request, 'glucose.html', context)
 
-@login_required
+
 def bp_page(request):
     records = BPRecord.objects.filter(user=request.user).order_by('-date')
     
