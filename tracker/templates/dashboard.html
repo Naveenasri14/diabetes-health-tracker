@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -299,7 +300,45 @@
             .header-left {
                 flex-direction: column;
             }
-        }
+        
+        .ai-bot{
+    position: fixed !important;
+    bottom: 15px !important;
+    right: 15px !important;
+    z-index: 10000;
+}
+
+/* robot icon */
+.ai-bot img{
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    animation: bounce 2s infinite;
+}
+
+/* tooltip */
+.tooltip{
+    position: absolute;
+    right: 70px;
+    top: 18px;
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.ai-bot:hover .tooltip{
+    opacity: 1;
+}
+
+/* animation */
+@keyframes bounce{
+    0%,100%{transform: translateY(0);}
+    50%{transform: translateY(-8px);}
+}  }
     </style>
 </head>
 <body>
@@ -359,6 +398,11 @@
                 <h2>AI Diabetes Prediction</h2>
                 <p>Predict diabetes risk using AI based on your health parameters.</p>
             </a>
+
+            <a href="{% url 'accessibility' %}" class="ai-bot">
+    <span class="tooltip">Need Help?</span>
+    <img src="https://img.icons8.com/fluency/96/chatbot.png" alt="AI Assistant">
+</a>
         </div>
 
         <div class="recent-records">
