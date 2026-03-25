@@ -396,12 +396,7 @@ def snooze_alarm(request, reminder_id):
 @login_required
 def ai_prediction(request):
     return render(request, "ai_prediction.html")
-<<<<<<< naveena
-<<<<<<< HEAD
-=======
 
-
->>>>>>> main
 @login_required
 def admin_dashboard(request):
 
@@ -424,7 +419,7 @@ def admin_dashboard(request):
     }
 
     return render(request, 'admin_dashboard.html', context)
-=======
+
 
 def accessibility(request):
     return render(request, "accessibility.html")
@@ -442,4 +437,4 @@ def chatbot(request):
         message = request.POST.get("message")
         reply = get_bot_response(message)
         return JsonResponse({"response": reply})
->>>>>>> 889d29d (AI assistant)
+

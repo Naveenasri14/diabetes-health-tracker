@@ -83,11 +83,6 @@ DATABASES = {
   'HOST': 'localhost',
   'PORT': '5433',
  }
-<<<<<<< HEAD
-
-    
-=======
->>>>>>> 889d29d (AI assistant)
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
