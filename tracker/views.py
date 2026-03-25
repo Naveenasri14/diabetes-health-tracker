@@ -396,8 +396,12 @@ def snooze_alarm(request, reminder_id):
 @login_required
 def ai_prediction(request):
     return render(request, "ai_prediction.html")
+<<<<<<< naveena
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> main
 @login_required
 def admin_dashboard(request):
 
@@ -420,3 +424,22 @@ def admin_dashboard(request):
     }
 
     return render(request, 'admin_dashboard.html', context)
+=======
+
+def accessibility(request):
+    return render(request, "accessibility.html")
+
+def ai_assistant(request):
+    return render(request, "ai_assistant.html")
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .services.ai_chatbot import get_bot_response
+
+@csrf_exempt
+def chatbot(request):
+    if request.method == "POST":
+        message = request.POST.get("message")
+        reply = get_bot_response(message)
+        return JsonResponse({"response": reply})
+>>>>>>> 889d29d (AI assistant)

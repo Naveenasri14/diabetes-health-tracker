@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessibility Mode</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#667eea,#764ba2);
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.container{
+background:white;
+padding:40px;
+border-radius:20px;
+width:450px;
+max-width:90%;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,0.2);
+}
+
+h2{
+margin-bottom:15px;
+color:#333;
+}
+
+.subtitle{
+color:#777;
+margin-bottom:25px;
+}
+
+select{
+padding:10px 15px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:16px;
+margin-top:10px;
+}
+
+.buttons{
+margin-top:25px;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+button{
+padding:15px;
+font-size:18px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+color:white;
+font-weight:600;
+transition:0.3s;
+}
+
+.voice{
+background:#ff9800;
+}
+
+.speak{
+background:#4caf50;
+}
+
+.chat{
+background:#2196f3;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 15px rgba(0,0,0,0.2);
+}
+
+.content{
+margin-top:25px;
+padding:20px;
+background:#f5f7fa;
+border-radius:10px;
+color:#444;
+}
+
+.chatbox{
+display:none;
+margin-top:20px;
+border:1px solid #ddd;
+border-radius:10px;
+padding:15px;
+background:#fafafa;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🤖 Accessibility Assistant</h2>
+<p class="subtitle">Voice, Language & Screen Reading Support</p>
+
+<label>🌐 Select Language</label><br> <select id="language">
+
+<option value="en">English</option>
+<option value="ta">தமிழ்</option>
+</select>
+
+<div class="buttons">
+
+<button class="voice" onclick="startVoice()">🎤 Voice Command</button>
+
+<button class="speak" onclick="readText()">🔊 Read Screen</button>
+
+<button class="chat" onclick="openAI()">🤖 Open AI Assistant</button>
+</div>
+
+<div id="content" class="content">
+
+<p id="welcome">Welcome to the Diabetes Health Assistant.</p>
+<p id="instruction">You can control this system using voice commands or text-to-speech.</p>
+
+</div>
+
+<div id="chatbox" class="chatbox">
+
+<p><b>Ask AI Assistant</b></p>
+
+<input type="text" id="userInput" placeholder="Ask something...">
+
+<button style="margin-top:10px;background:#673ab7;" onclick="aiReply()">Send</button>
+
+<p id="aiResponse" style="margin-top:10px;color:#555;"></p>
+
+</div>
+
+</div>
+
+<script>
+
+function startVoice(){
+
+const recognition = new webkitSpeechRecognition();
+
+recognition.lang="en-US";
+
+recognition.onresult=function(event){
+
+let command = event.results[0][0].transcript.toLowerCase();
+
+alert("You said: " + command);
+
+if(command.includes("glucose")){
+window.location.href="/glucose/";
+}
+
+if(command.includes("blood pressure")){
+window.location.href="/bp/";
+}
+
+if(command.includes("prediction")){
+window.location.href="/ai_prediction/";
+}
+
+};
+
+recognition.start();
+
+}
+
+function readText(){
+
+let text=document.getElementById("content").innerText;
+
+let speech=new SpeechSynthesisUtterance(text);
+
+speech.lang="en-US";
+
+speechSynthesis.speak(speech);
+
+}
+
+function toggleChat(){
+
+let chat=document.getElementById("chatbox");
+
+chat.style.display = chat.style.display==="none" ? "block":"none";
+
+}
+function openAI(){
+    window.location.href = "/ai-assistant/";
+}
+
+function aiReply(){
+
+let input=document.getElementById("userInput").value.toLowerCase();
+
+let response="";
+
+if(input.includes("diabetes")){
+
+response="Diabetes is a condition where blood sugar levels become too high.";
+
+}
+
+else if(input.includes("exercise")){
+
+response="Regular walking and exercise help control blood sugar.";
+
+}
+
+else if(input.includes("food")){
+
+response="Healthy foods include vegetables, whole grains, and low sugar items.";
+
+}
+
+else{
+
+response="I am your health assistant. Ask about diabetes, food, or exercise.";
+
+}
+
+document.getElementById("aiResponse").innerText=response;
+
+}
+
+</script>
+
+</body>
+</html>
