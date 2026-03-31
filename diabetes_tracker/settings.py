@@ -78,6 +78,16 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
+<<<<<<< HEAD
+ 'default': {
+  'ENGINE': 'django.db.backends.postgresql',
+  'NAME': 'diabetes_db',
+  'USER': 'postgres',
+  'PASSWORD': 'postgres123',
+  'HOST': 'localhost',
+  'PORT': '5432',
+ }
+=======
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'diabetes_db',
@@ -86,6 +96,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
+>>>>>>> 2d864a4c1c37a5fae0bd14b870b797c1ed3eff05
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -158,3 +169,9 @@ STATICFILES_DIRS = [BASE_DIR / 'tracker/static']
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+<<<<<<< HEAD
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+=======
+>>>>>>> 2d864a4c1c37a5fae0bd14b870b797c1ed3eff05

@@ -1,441 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account - Diabetes Health Tracker</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up – Health Hub Villages</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    :root {
+      --teal:      #0d9488;
+      --teal-dark: #0f766e;
+      --teal-light:#ccfbf1;
+      --red:       #ef4444;
+      --gray-100:  #f1f5f9;
+      --gray-400:  #94a3b8;
+      --gray-600:  #475569;
+      --gray-800:  #1e293b;
+    }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 500px;
-            padding: 40px;
-            animation: slideIn 0.5s ease;
-        }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.18);
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo .icon {
+      font-size: 2.4rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+    .logo p { font-size: .85rem; color: var(--gray-400); margin-top: 2px; }
 
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
+    /* messages */
+    .messages { margin-bottom: 16px; }
+    .msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: .85rem;
+      margin-bottom: 8px;
+    }
+    .msg.error   { background: #fef2f2; color: var(--red); border-left: 3px solid var(--red); }
+    .msg.success { background: #f0fdf4; color: #16a34a; border-left: 3px solid #16a34a; }
 
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
+    .form-group { margin-bottom: 16px; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+    label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-            font-size: 14px;
-        }
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: .95rem;
+      color: var(--gray-800);
+      background: var(--gray-100);
+      transition: border .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--teal);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(13,148,136,.12);
+    }
 
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
+    /* password strength */
+    .pw-bar { height: 4px; border-radius: 4px; margin-top: 8px; background: #e2e8f0; }
+    .pw-bar-fill { height: 100%; border-radius: 4px; width: 0; transition: width .3s, background .3s; }
+    .pw-hint { font-size: .75rem; color: var(--gray-400); margin-top: 4px; }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--teal);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background .2s, transform .1s;
+    }
+    .btn-submit:hover { background: var(--teal-dark); }
+    .btn-submit:active { transform: scale(.98); }
 
-        .form-group input.error {
-            border-color: #f44336;
-        }
+    .footer-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: .88rem;
+      color: var(--gray-600);
+    }
+    .footer-link a { color: var(--teal); font-weight: 600; text-decoration: none; }
+    .footer-link a:hover { text-decoration: underline; }
 
-        .form-group .help-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 20px 0;
+    }
 
-        .errorlist {
-            list-style: none;
-            color: #f44336;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .password-requirements {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 13px;
-        }
-
-        .password-requirements h4 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .requirement {
-            color: #666;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .requirement i {
-            margin-right: 8px;
-            font-size: 12px;
-        }
-
-        .requirement.valid {
-            color: #4caf50;
-        }
-
-        .requirement.invalid {
-            color: #f44336;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .login-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            margin-left: 5px;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
-        }
-
-        /* Popup styles */
-        .popup {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            min-width: 300px;
-            z-index: 1000;
-            animation: slideInRight 0.3s ease;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .popup.success {
-            border-left: 4px solid #4caf50;
-        }
-
-        .popup.error {
-            border-left: 4px solid #f44336;
-        }
-
-        .popup-content {
-            display: flex;
-            align-items: center;
-        }
-
-        .popup-icon {
-            margin-right: 15px;
-            font-size: 24px;
-        }
-
-        .popup-message {
-            flex: 1;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .popup-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #999;
-            margin-left: 10px;
-        }
-
-        .popup-close:hover {
-            color: #333;
-        }
-
-        .popup-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            animation: progress 3s linear;
-        }
-        .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            background: white;
-        }
-
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        @keyframes progress {
-            from {
-                width: 100%;
-            }
-            to {
-                width: 0%;
-            }
-        }
-    </style>
+    .info-box {
+      background: var(--teal-light);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: .82rem;
+      color: var(--teal-dark);
+      margin-bottom: 20px;
+    }
+    .info-box strong { display: block; margin-bottom: 2px; }
+  </style>
 </head>
 <body>
-    <div class="popup" id="popup">
-        <div class="popup-content">
-            <span class="popup-icon" id="popupIcon"></span>
-            <span class="popup-message" id="popupMessage"></span>
-            <button class="popup-close" onclick="closePopup()">&times;</button>
-        </div>
-        <div class="popup-progress" id="popupProgress"></div>
+
+<div class="card">
+  <div class="logo">
+    <span class="icon">🏥</span>
+    <h1>Health Hub Villages</h1>
+    <p>Diabetes Care Platform – Create Account</p>
+  </div>
+
+  <div class="info-box">
+    <strong>📌 Note</strong>
+    You can link caregivers from your profile page after logging in.
+  </div>
+
+  <form method="POST" id="signupForm" novalidate>
+    {% csrf_token %}
+
+    <!-- Django auth fields (username, password1, password2) -->
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        {% for e in field.errors %}
+          <div style="color:var(--red);font-size:.78rem;margin-top:4px;">{{ e }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Password strength indicator (attaches to password1) -->
+    <div class="pw-bar"><div class="pw-bar-fill" id="pwFill"></div></div>
+    <div class="pw-hint" id="pwHint">Enter a password above</div>
+
+    <hr class="divider" />
+
+    <!-- Role -->
+    <div class="form-group">
+      <label for="role">Role</label>
+      <select id="role" name="role" required>
+        <option value="">— Select your role —</option>
+        <option value="patient">🧑‍⚕️ Patient</option>
+        <option value="caregiver">👨‍👩‍👧 Caregiver</option>
+      </select>
     </div>
 
-    <div class="container">
-        <div class="header">
-            <h1>📊 Diabetes Health Tracker</h1>
-            <p>Create your account to start tracking your health</p>
-        </div>
+    <!-- Region -->
+    <div class="form-group">
+      <label for="region">Village / Region</label>
+      <input type="text" id="region" name="region" placeholder="e.g. Coimbatore, Erode…" required />
 
-        <form method="POST" id="signupForm">
-            {% csrf_token %}
-            
-            {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                <small class="help-text">{{ field.help_text }}</small>
-                {% endif %}
-                {% if field.errors %}
-                <ul class="errorlist">
-                    {% for error in field.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-            {% endfor %}
-
-            <!-- Password Requirements Checklist (only show for password field) -->
-            <div class="password-requirements" id="passwordRequirements">
-                <h4>Password Requirements:</h4>
-                <div class="requirement" id="length">
-                    <i>•</i> At least 8 characters
-                </div>
-                <div class="requirement" id="uppercase">
-                    <i>•</i> At least one uppercase letter
-                </div>
-                <div class="requirement" id="lowercase">
-                    <i>•</i> At least one lowercase letter
-                </div>
-                <div class="requirement" id="number">
-                    <i>•</i> At least one number
-                </div>
-                <div class="requirement" id="special">
-                    <i>•</i> At least one special character
-                </div>
-            </div>
-            <!-- Role Selection -->
-            <div class="form-group">
-               <label for="role">Select Role</label>
-               <select name="role" id="role" required>
-                   <option value="">-- Choose Role --</option>
-                   <option value="patient">Patient</option>
-                   <option value="caregiver">Caregiver</option>
-                   <option value="health_worker">Health Worker</option>
-               </select>
-            </div>
-
-            <!-- Region Field -->
-            <div class="form-group">
-                <label for="region">Region / Area</label>
-                <input type="text" name="region" id="region" placeholder="Enter your area or locality">
-            </div>
-            <button type="submit" class="btn">Create Account</button>
-        </form>
-
-        <div class="login-link">
-            Already have an account? <a href="{% url 'login' %}">Login here</a>
-        </div>
+    <!-- Email -->
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required />
     </div>
 
-    <script>
-        // Get password input field (Django generates id_id_password1 for password field)
-        const passwordField = document.querySelector('input[name="password1"]');
-        const requirements = document.getElementById('passwordRequirements');
+    <!-- Phone -->
+    <div class="form-group">
+      <label for="phone">Mobile Number</label>
+      <input type="tel" id="phone" name="phone" placeholder="10-digit Indian mobile" maxlength="10" required />
+    </div>
 
-        // Show requirements when password field is focused
-        if (passwordField) {
-            passwordField.addEventListener('focus', function() {
-                requirements.style.display = 'block';
-            });
+    <button type="submit" class="btn-submit">Create Account →</button>
+  </form>
 
-            // Check password strength in real-time
-            passwordField.addEventListener('keyup', function() {
-                const password = this.value;
-                
-                // Check requirements
-                const length = password.length >= 8;
-                const uppercase = /[A-Z]/.test(password);
-                const lowercase = /[a-z]/.test(password);
-                const number = /[0-9]/.test(password);
-                const special = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  <div class="footer-link">
+    Already have an account? <a href="{% url 'login_view' %}">Log in here</a>
+  </div>
+</div>
 
-                // Update requirement indicators
-                updateRequirement('length', length);
-                updateRequirement('uppercase', uppercase);
-                updateRequirement('lowercase', lowercase);
-                updateRequirement('number', number);
-                updateRequirement('special', special);
-            });
-        }
+<script>
+  // Password strength meter
+  const pwInput = document.querySelector('input[name="password1"]');
+  const fill    = document.getElementById('pwFill');
+  const hint    = document.getElementById('pwHint');
 
-        function updateRequirement(id, isValid) {
-            const element = document.getElementById(id);
-            if (element) {
-                if (isValid) {
-                    element.classList.add('valid');
-                    element.classList.remove('invalid');
-                    element.innerHTML = '<i>✓</i> ' + element.innerHTML.substring(2);
-                } else {
-                    element.classList.add('invalid');
-                    element.classList.remove('valid');
-                    element.innerHTML = '<i>✗</i> ' + element.innerHTML.substring(2);
-                }
-            }
-        }
+  const levels = [
+    { label: 'Very weak',  color: '#ef4444', w: '20%' },
+    { label: 'Weak',       color: '#f97316', w: '40%' },
+    { label: 'Fair',       color: '#eab308', w: '60%' },
+    { label: 'Strong',     color: '#22c55e', w: '80%' },
+    { label: 'Very strong',color: '#0d9488', w: '100%' },
+  ];
 
-        // Form validation
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
-            const password1 = document.querySelector('input[name="password1"]');
-            const password2 = document.querySelector('input[name="password2"]');
-            
-            if (password1 && password2) {
-                if (password1.value !== password2.value) {
-                    e.preventDefault();
-                    showPopup('Passwords do not match!', 'error');
-                }
-            }
-        });
+  function scorePassword(p) {
+    let s = 0;
+    if (p.length >= 8)        s++;
+    if (p.length >= 12)       s++;
+    if (/[A-Z]/.test(p))      s++;
+    if (/[0-9]/.test(p))      s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return Math.min(s - 1, 4);
+  }
 
-        // Popup functions
-        function showPopup(message, type) {
-            const popup = document.getElementById('popup');
-            const icon = document.getElementById('popupIcon');
-            const messageEl = document.getElementById('popupMessage');
-            const progress = document.getElementById('popupProgress');
+  if (pwInput) {
+    pwInput.addEventListener('input', () => {
+      const v = pwInput.value;
+      if (!v) { fill.style.width = '0'; hint.textContent = 'Enter a password above'; return; }
+      const idx = scorePassword(v);
+      const lvl = levels[Math.max(0, idx)];
+      fill.style.width      = lvl.w;
+      fill.style.background = lvl.color;
+      hint.textContent      = lvl.label;
+      hint.style.color      = lvl.color;
+    });
+  }
 
-            popup.className = 'popup ' + type;
-            
-            if (type === 'success') {
-                icon.innerHTML = '✅';
-            } else {
-                icon.innerHTML = '❌';
-            }
-            
-            messageEl.textContent = message;
-            popup.style.display = 'block';
+  // Phone: allow digits only
+  document.getElementById('phone').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+  });
 
-            // Auto close after 3 seconds
-            setTimeout(closePopup, 3000);
-        }
+  // Client-side check before submit
+  document.getElementById('signupForm').addEventListener('submit', function (e) {
+    const phone = document.getElementById('phone').value;
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      e.preventDefault();
+      alert('Please enter a valid 10-digit Indian mobile number starting with 6–9.');
+    }
+  });
+</script>
 
-        function closePopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
-
-        // Show Django messages if there are any form errors
-        {% if form.errors %}
-            window.onload = function() {
-                showPopup('Please correct the errors below', 'error');
-            }
-        {% endif %}
-    </script>
 </body>
 </html>

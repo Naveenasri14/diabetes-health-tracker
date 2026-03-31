@@ -393,8 +393,49 @@ box-shadow:0 5px 15px rgba(244,67,54,0.3);
         </div>
     </form>
 </div>
+<<<<<<< HEAD
+{% if is_patient %}
+<div class="form-group">
+  <label>Weight (kg)</label>
+  <input type="number" name="weight">
+</div>
+
+<div class="form-group">
+  <label>Height (cm)</label>
+  <input type="number" name="height">
+</div>
+
+<div class="form-group">
+  <label>Blood Group</label>
+  <input type="text" name="blood_group">
+</div>
+
+<div class="form-group">
+  <label>Diabetes Type</label>
+  <select name="diabetes_type">
+  <option value="type1">Type 1</option>
+  <option value="type2">Type 2</option>
+  <option value="gestational">Gestational</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>Years Since Diagnosis</label>
+  <input type="number" name="years">
+</div>
+
+<div class="form-group checkbox-group">
+  <input type="checkbox" name="family_history">
+  <span>Family history of diabetes</span>
+</div>
+{% endif %}
+<button type="submit">Save Profile</button>
+
+</form>
+=======
 
 <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+>>>>>>> 2d864a4c1c37a5fae0bd14b870b797c1ed3eff05
 
 </div>
 
