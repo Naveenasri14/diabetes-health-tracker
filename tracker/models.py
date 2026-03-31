@@ -355,3 +355,45 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
+<<<<<<< HEAD
+=======
+
+
+class Profile(models.Model):
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
+    
+    DIABETES_TYPE_CHOICES = [
+        ('type1', 'Type 1'),
+        ('type2', 'Type 2'),
+        ('gestational', 'Gestational'),
+        ('none', 'None/Pre-diabetic'),
+    ]
+    
+    # Change related_name from 'profile' to 'tracker_profile'
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tracker_profile')
+    age = models.IntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True, help_text="Weight in kg")
+    height = models.FloatField(null=True, blank=True, help_text="Height in cm")
+    blood_group = models.CharField(max_length=5, null=True, blank=True)
+    diabetes_type = models.CharField(max_length=20, choices=DIABETES_TYPE_CHOICES, null=True, blank=True)
+    years_since_diagnosis = models.FloatField(null=True, blank=True)
+    family_history = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+    
+    @property
+    def bmi(self):
+        """Calculate BMI if height and weight are available"""
+        if self.height and self.weight and self.height > 0:
+            height_m = self.height / 100
+            return round(self.weight / (height_m ** 2), 1)
+        return None
+>>>>>>> 22dfaf9a239c6f781a0179939b2ffb1550acf667

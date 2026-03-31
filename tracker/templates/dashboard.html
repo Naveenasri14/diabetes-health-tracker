@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -142,6 +143,10 @@
 
         .ai-card {
             background: linear-gradient(135deg, #e8f0ff 0%, #d9e6ff 100%);
+        }
+
+        .diet-card {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
         }
 
         .reminder-section {
@@ -299,7 +304,45 @@
             .header-left {
                 flex-direction: column;
             }
-        }
+        
+        .ai-bot{
+    position: fixed !important;
+    bottom: 15px !important;
+    right: 15px !important;
+    z-index: 10000;
+}
+
+/* robot icon */
+.ai-bot img{
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    animation: bounce 2s infinite;
+}
+
+/* tooltip */
+.tooltip{
+    position: absolute;
+    right: 70px;
+    top: 18px;
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.ai-bot:hover .tooltip{
+    opacity: 1;
+}
+
+/* animation */
+@keyframes bounce{
+    0%,100%{transform: translateY(0);}
+    50%{transform: translateY(-8px);}
+}  }
     </style>
 </head>
 <body>
@@ -371,6 +414,18 @@
                 <h2>AI Diabetes Prediction</h2>
                 <p>Predict diabetes risk using AI based on your health parameters.</p>
             </a>
+
+            <!-- Diet Planner Button (New) -->
+            <a href="{% url 'diet_planner_home' %}" class="card diet-card">
+                <div class="card-icon">🥗</div>
+                <h2>Diet Planner</h2>
+                <p>Get personalized meal plans and dietary recommendations to manage diabetes.</p>
+            </a>
+
+            <a href="{% url 'accessibility' %}" class="ai-bot">
+                <span class="tooltip">Need Help?</span>
+                <img src="https://img.icons8.com/fluency/96/chatbot.png" alt="AI Assistant">
+            </a>
         </div>
 
         <div class="recent-records">
@@ -411,12 +466,12 @@
                     {% if bp_records %}
                     <table class="record-table">
                         <thead>
-                             <tr>
+                            <tr>
                                 <th>Date</th>
                                 <th>Systolic</th>
                                 <th>Diastolic</th>
                                 <th>Pulse</th>
-                             </tr>
+                            </tr>
                         </thead>
                         <tbody>
                             {% for record in bp_records|slice:":5" %}

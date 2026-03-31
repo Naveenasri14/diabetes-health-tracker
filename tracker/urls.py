@@ -1,3 +1,5 @@
+from django.contrib import admin
+from django.urls import path, include  # Make sure 'include' is here
 from django.urls import path
 from . import views
 from .views import add_record
@@ -30,6 +32,12 @@ urlpatterns = [
     # AI Prediction Page
     path('ai-prediction/', views.ai_prediction, name='ai_prediction'),
 
+    path("accessibility/", views.accessibility, name="accessibility"),
+
+    path("ai-assistant/", views.ai_assistant, name="ai_assistant"),
+
+    path("chatbot/", views.chatbot, name="chatbot"),
+
     # Reminder Settings
     path('reminder-settings/', views.reminder_settings, name='reminder_settings'),
     path('reminder/add/', views.add_reminder, name='add_reminder'),
@@ -56,4 +64,5 @@ urlpatterns = [
 
     # Admin Dashboard
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    
 ]

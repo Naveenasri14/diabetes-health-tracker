@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'tracker',
+    'diabetes_tracker',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -77,6 +78,7 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
+<<<<<<< HEAD
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'diabetes_db',
@@ -85,6 +87,16 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
+=======
+ 'default': {
+  'ENGINE': 'django.db.backends.postgresql',
+  'NAME': 'diabetes_db',
+  'USER': 'postgres',
+  'PASSWORD': 'postgre123',
+  'HOST': 'localhost',
+  'PORT': '5433',
+ }
+>>>>>>> 22dfaf9a239c6f781a0179939b2ffb1550acf667
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -121,6 +133,10 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
