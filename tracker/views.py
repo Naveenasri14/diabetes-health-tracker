@@ -1,3 +1,8 @@
+from urllib import request
+from django.utils import timezone
+from django.shortcuts import render , redirect , get_object_or_404
+from .models import BloodSugarRecord
+from .models import GlucoseRecord, BPRecord , NotificationPreference, Reminder
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -5,7 +10,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Avg, Count, Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import datetime, date, timedelta
@@ -18,6 +22,7 @@ from .models import (
     CaregiverNote, CaregiverMessage, PatientAlert,
 )
 from .services.ai_chatbot import get_bot_response
+from tracker.models import Profile
 
 
 # ──────────────────────────────────────────
@@ -123,39 +128,14 @@ def logout_view(request):
     return redirect('login_view')
 
 
-# ──────────────────────────────────────────
-# ROLE-BASED REDIRECT
-# ──────────────────────────────────────────
+# ---------------- PROFILE ---------------- #
 
 @login_required
-def redirect_dashboard(request):
-    try:
-        profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
-        messages.error(request, "Profile not found.")
-        return redirect('login_view')
-
-    if profile.role == 'patient':
-        is_first_login = (
-            not CaregiverLink.objects.filter(patient=profile).exists() and
-            not GlucoseRecord.objects.filter(user=request.user).exists()
-        )
-        if is_first_login and not profile.has_skipped_caregiver:
-            return redirect('add_caregiver')
-        return redirect('patient_dashboard')
-
-    elif profile.role == 'caregiver':
-        return redirect('caregiver_dashboard')
-
-    elif profile.role == 'health_worker':
-        return redirect('health_worker_dashboard')
-
-    return redirect('dashboard')
+def profile(request):
+    return render(request, 'profile.html')
 
 
-# ──────────────────────────────────────────
-# DASHBOARDS
-# ──────────────────────────────────────────
+# ---------------- DASHBOARD ---------------- #
 
 @login_required
 def dashboard(request):
@@ -591,20 +571,85 @@ def glucose_page(request):
         low_count         = sum(1 for r in records if r.get_glucose_category() == 'low')
         normal_count      = sum(1 for r in records if r.get_glucose_category() == 'normal')
         prediabetes_count = sum(1 for r in records if r.get_glucose_category() == 'prediabetes')
+        
+        # Calculate estimated A1C (average glucose to A1C conversion)
+        estimated_a1c = (avg_glucose + 46.7) / 28.7
+
+        # Determine control status
+        if estimated_a1c < 7:
+            control_status = "controlled"
+        elif estimated_a1c < 8:
+           control_status = "moderate"
+        else:
+         control_status = "poor"
+        
+        # Get today's reading
+        today = datetime.now().date()
+        today_record = records.filter(date=today).first()
+        today_reading = today_record.glucose_level if today_record else None
+        today_category = today_record.get_glucose_category() if today_record else None
+        
+        # Calculate in-range percentage
+        in_range = normal_count
+        in_range_percent = round((in_range / total_records) * 100, 1)
+
+        # Diabetes Control Score (0–100)
+        consistency_score = min(total_records * 2, 40)  
+        # max 40 points
+        range_score = in_range_percent  
+        # max 100 but we scale
+        diabetes_score = int((consistency_score * 0.4) + (range_score * 0.6))
+        # Limit to 100
+        diabetes_score = min(diabetes_score, 100)
+        
+        # Medication percentage
+        med_count = sum(1 for r in records if r.medication_taken)
+        medication_percent = round((med_count / total_records) * 100, 1) if total_records > 0 else 0
+        
+        # Prepare chart data (last 30 days)
+        thirty_days_ago = datetime.now().date() - timedelta(days=30)
+        recent_records = records.filter(date__gte=thirty_days_ago).order_by('date', 'time')
+        
+        chart_labels = []
+        chart_values = []
+        chart_types = []
+        
+        # Group by date to avoid too many points
+        daily_readings = {}
+        for record in recent_records:
+            date_str = record.date.strftime('%m/%d')
+            if date_str not in daily_readings:
+                daily_readings[date_str] = {
+                    'values': [],
+                    'types': []
+                }
+            daily_readings[date_str]['values'].append(record.glucose_level)
+            daily_readings[date_str]['types'].append(record.get_glucose_category())
+        
+        # Take average for each day
+        for date_str, data in daily_readings.items():
+            chart_labels.append(date_str)
+            chart_values.append(round(sum(data['values']) / len(data['values']), 1))
+            # Use the most common category for that day
+            chart_types.append(max(set(data['types']), key=data['types'].count))
+
     else:
-        avg_glucose = estimated_a1c = 0
+        avg_glucose = 0
+        estimated_a1c = 0
         high_count = low_count = normal_count = prediabetes_count = 0
 
-    return render(request, 'glucose.html', {
-        'glucose_records':   records,
-        'avg_glucose':       round(avg_glucose, 1),
-        'estimated_a1c':     estimated_a1c,
-        'high_count':        high_count,
-        'low_count':         low_count,
-        'normal_count':      normal_count,
+    context = {
+        'glucose_records': records,
+        'avg_glucose': round(avg_glucose, 1),
+        'estimated_a1c': round(estimated_a1c, 1),
+        'high_count': high_count,
+        'low_count': low_count,
+        'normal_count': normal_count,
         'prediabetes_count': prediabetes_count,
-        'total_records':     total,
-    })
+        'total_records': total_records
+    }
+
+    return render(request, 'glucose.html', context)
 
 
 # ──────────────────────────────────────────
@@ -629,23 +674,27 @@ def add_bp(request):
 
 @login_required
 def bp_page(request):
-    records      = BPRecord.objects.filter(user=request.user).order_by('-date')
-    total        = records.count()
-    avg_systolic = avg_diastolic = 0
-    if total:
-        avg_systolic  = round(sum(r.systolic  for r in records) / total, 1)
-        avg_diastolic = round(sum(r.diastolic for r in records) / total, 1)
-    return render(request, 'bp.html', {
-        'bp_records':    records,
-        'avg_systolic':  avg_systolic,
-        'avg_diastolic': avg_diastolic,
-        'total_records': total,
-    })
+    records = BPRecord.objects.filter(user=request.user).order_by('-date')
+
+    total_records = records.count()
+
+    if total_records > 0:
+        avg_systolic = sum(r.systolic for r in records) / total_records
+        avg_diastolic = sum(r.diastolic for r in records) / total_records
+    else:
+        avg_systolic = avg_diastolic = 0
+
+    context = {
+        'bp_records': records,
+        'avg_systolic': round(avg_systolic, 1),
+        'avg_diastolic': round(avg_diastolic, 1),
+        'total_records': total_records
+    }
+
+    return render(request, 'bp.html', context)
 
 
-# ──────────────────────────────────────────
-# REMINDERS
-# ──────────────────────────────────────────
+# ---------------- REMINDERS ---------------- #
 
 @login_required
 def reminder_settings(request):
@@ -762,83 +811,3 @@ def snooze_alarm(request, reminder_id):
     reminder.save()
     messages.info(request, f"Snoozed until {snooze_time.strftime('%H:%M')}")
     return redirect('dashboard')
-
-
-@login_required
-def check_active_alarms(request):
-    now    = datetime.now()
-    active = Reminder.objects.filter(
-        user=request.user, is_active=True,
-        start_date__lte=now.date(),
-        reminder_time__lte=now.time(),
-    ).first()
-    if active:
-        return JsonResponse({
-            'has_alarm':   True,
-            'reminder_id': active.id,
-            'title':       active.title,
-        })
-    return JsonResponse({'has_alarm': False})
-
-
-# ──────────────────────────────────────────
-# AI PREDICTION
-# ──────────────────────────────────────────
-
-@login_required
-def ai_prediction(request):
-    return render(request, "ai_prediction.html")
-
-
-# ──────────────────────────────────────────
-# HEALTH WORKER / ADMIN DASHBOARD
-# ──────────────────────────────────────────
-
-@login_required
-def admin_dashboard(request):
-    try:
-        profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
-        return redirect('dashboard')
-
-    if profile.role not in ('health_worker', 'caregiver'):
-        messages.error(request, "Access denied.")
-        return redirect('dashboard')
-
-    region_patients   = UserProfile.objects.filter(
-        role='patient', region__iexact=profile.region)
-    total_users       = region_patients.count()
-    high_risk         = GlucoseRecord.objects.filter(
-        user__userprofile__in=region_patients, glucose_level__gt=250).count()
-    missed_medication = GlucoseRecord.objects.filter(
-        user__userprofile__in=region_patients, medication_taken=False).count()
-    recent_alerts     = NotificationLog.objects.filter(
-        user__userprofile__in=region_patients).order_by('-sent_at')[:10]
-
-    return render(request, 'admin_dashboard.html', {
-        'total_users':       total_users,
-        'high_risk':         high_risk,
-        'missed_medication': missed_medication,
-        'recent_alerts':     recent_alerts,
-    })
-
-
-# ──────────────────────────────────────────
-# EXTRA PAGES
-# ──────────────────────────────────────────
-
-def accessibility(request):
-    return render(request, "accessibility.html")
-
-
-def ai_assistant(request):
-    return render(request, "ai_assistant.html")
-
-
-@csrf_exempt
-def chatbot(request):
-    if request.method == "POST":
-        message = request.POST.get("message")
-        reply   = get_bot_response(message)
-        return JsonResponse({"response": reply})
-    return JsonResponse({"error": "POST required"}, status=405)

@@ -385,12 +385,24 @@
         </div>
 
         <div class="dashboard-cards">
-            <a href="{% url 'glucose' %}" class="card glucose-card">
-                <div class="card-icon">🩸</div>
-                <h2>View Glucose Records</h2>
-                <p>Track your blood sugar levels, meals, medications, and exercise activities.</p>
-            </a>
+    <a href="{% url 'glucose' %}" class="card glucose-card">
+        <div class="card-icon">🩸</div>
+        <h2>View Glucose Records</h2>
+        <p>Track your blood sugar levels, meals, medications, and exercise activities.</p>
+    </a>
 
+    <a href="{% url 'bp' %}" class="card bp-card">
+        <div class="card-icon">❤️</div>
+        <h2>View Blood Pressure Records</h2>
+        <p>Monitor your systolic, diastolic, and pulse readings.</p>
+    </a>
+
+    <a href="{% url 'education_home' %}" class="card">
+        <div class="card-icon">📚</div>
+        <h2>Health Education</h2>
+        <p>Learn about diabetes management with videos, myths vs facts, and audio tips.</p>
+    </a>
+</div>
             <a href="{% url 'bp' %}" class="card bp-card">
                 <div class="card-icon">❤️</div>
                 <h2>View Blood Pressure Records</h2>
