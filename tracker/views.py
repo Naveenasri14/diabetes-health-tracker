@@ -10,7 +10,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
-<<<<<<< HEAD
 from collections import defaultdict
 from statistics import median
 from .models import VideoTutorial, MythFact, HealthTip
@@ -70,9 +69,7 @@ def health_tips(request):
         'categories': HealthTip.TIP_CATEGORIES,
     }
     return render(request, 'education/health_tips.html', context)
-=======
 from django.views.decorators.csrf import csrf_exempt
->>>>>>> 22dfaf9a239c6f781a0179939b2ffb1550acf667
 
 from datetime import datetime, date, timedelta
 import json
@@ -256,7 +253,6 @@ def glucose_page(request):
         low_count = sum(1 for r in records if r.get_glucose_category() == 'low')
         normal_count = sum(1 for r in records if r.get_glucose_category() == 'normal')
         prediabetes_count = sum(1 for r in records if r.get_glucose_category() == 'prediabetes')
-<<<<<<< HEAD
         
         # Calculate estimated A1C (average glucose to A1C conversion)
         estimated_a1c = (avg_glucose + 46.7) / 28.7
@@ -319,8 +315,6 @@ def glucose_page(request):
             # Use the most common category for that day
             chart_types.append(max(set(data['types']), key=data['types'].count))
 
-=======
->>>>>>> 22dfaf9a239c6f781a0179939b2ffb1550acf667
     else:
         avg_glucose = 0
         estimated_a1c = 0
@@ -428,7 +422,6 @@ def bp_page(request):
     if total_records > 0:
         avg_systolic = sum(r.systolic for r in records) / total_records
         avg_diastolic = sum(r.diastolic for r in records) / total_records
-<<<<<<< HEAD
         pulse_records = [r.pulse for r in records if r.pulse]
         avg_pulse = sum(pulse_records) / len(pulse_records) if pulse_records else 0
         
@@ -464,11 +457,9 @@ def bp_page(request):
             diastolic_data.append(record.diastolic)
     
     import json
-=======
     else:
         avg_systolic = avg_diastolic = 0
 
->>>>>>> 22dfaf9a239c6f781a0179939b2ffb1550acf667
     context = {
         'bp_records': records,
         'avg_systolic': round(avg_systolic, 1),
