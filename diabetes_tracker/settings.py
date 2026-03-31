@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'tracker',
+    'diabetes_tracker',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -77,17 +78,12 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 DATABASES = {
  'default': {
   'ENGINE': 'django.db.backends.postgresql',
-  'NAME': 'postgres',
+  'NAME': 'health_hub',
   'USER': 'postgres',
-  'PASSWORD': 'postgre123',
+  'PASSWORD': 'pythonmegaexpert',
   'HOST': 'localhost',
-  'PORT': '5433',
+  'PORT': '5432',
  }
-<<<<<<< HEAD
-
-    
-=======
->>>>>>> 889d29d (AI assistant)
 }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

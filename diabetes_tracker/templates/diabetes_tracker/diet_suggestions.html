@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diet Suggestions - Diabetes Health Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .filter-btn {
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .filter-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            background: white;
+            color: #667eea;
+        }
+        
+        .count-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-left: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .meal-section {
+            margin-bottom: 40px;
+        }
+        
+        .meal-section h2 {
+            color: white;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .recipe-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .recipe-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            color: white;
+            position: relative;
+        }
+        
+        .recipe-header h3 {
+            font-size: 1.1rem;
+            padding-right: 70px;
+        }
+        
+        .millet-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff9800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .recipe-body {
+            padding: 15px;
+        }
+        
+        .recipe-description {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .calories {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .replaces {
+            font-size: 0.75rem;
+            color: #999;
+        }
+        
+        .ingredients {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .recipe-card:hover .ingredients {
+            display: block;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .recipes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .filter-btn {
+                width: 200px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/diet-planner/" class="back-btn">← Back to Diet Planner</a>
+        
+        <div class="header">
+            <h1>📚 Healthy Recipe Library</h1>
+            <p>Discover delicious Tamil Nadu traditional recipes for better diabetes management</p>
+        </div>
+        
+        <div class="filter-bar">
+            <a href="/diet-suggestions/" class="filter-btn {% if not filter_millet %}active{% endif %}">
+                All Recipes <span class="count-badge">{{ total_count }}</span>
+            </a>
+            <a href="/diet-suggestions/?type=millet" class="filter-btn {% if filter_millet %}active{% endif %}">
+                🌾 Millet-Based Recipes
+            </a>
+        </div>
+        
+        {% if filter_millet %}
+        <div style="background: rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; margin-bottom: 30px; text-align: center; color: white;">
+            <strong>✨ Showing only Millet-Based Recipes</strong> - These recipes help control blood sugar naturally!
+        </div>
+        {% endif %}
+        
+        {% for meal_type, suggestions in grouped_suggestions.items %}
+            {% if suggestions %}
+            <div class="meal-section">
+                <h2>
+                    {% if meal_type == 'breakfast' %}🌅 Breakfast
+                    {% elif meal_type == 'lunch' %}☀️ Lunch
+                    {% elif meal_type == 'dinner' %}🌙 Dinner
+                    {% elif meal_type == 'snacks' %}🍎 Snacks
+                    {% endif %}
+                    <span class="count-badge">{{ suggestions|length }} recipes</span>
+                </h2>
+                
+                <div class="recipes-grid">
+                    {% for suggestion in suggestions %}
+                    <div class="recipe-card">
+                        <div class="recipe-header">
+                            <h3>{{ suggestion.name }}</h3>
+                            {% if suggestion.is_millet_based %}
+                                <span class="millet-badge">🌾 Millet</span>
+                            {% endif %}
+                        </div>
+                        <div class="recipe-body">
+                            <div class="recipe-description">
+                                {{ suggestion.description|truncatewords:20 }}
+                            </div>
+                            <div class="recipe-meta">
+                                <span class="calories">🔥 {{ suggestion.calories }} kcal</span>
+                                {% if suggestion.replaces %}
+                                    <span class="replaces">↺ Replaces: {{ suggestion.replaces }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="ingredients">
+                                <strong>🥗 Ingredients:</strong><br>
+                                {{ suggestion.ingredients }}<br><br>
+                                <strong>👩‍🍳 How to make:</strong><br>
+                                {{ suggestion.preparation_method|truncatewords:30 }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        
+        {% if not grouped_suggestions.breakfast and not grouped_suggestions.lunch and not grouped_suggestions.dinner and not grouped_suggestions.snacks %}
+        <div class="empty-state">
+            <div style="font-size: 3rem; margin-bottom: 15px;">🍽️</div>
+            <h3>No recipes found</h3>
+            <p>Check back soon for more delicious and healthy recipes!</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

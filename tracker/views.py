@@ -2,15 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from datetime import datetime, date, timedelta
 import json
 
 from .models import GlucoseRecord, BPRecord, NotificationPreference, Reminder, NotificationLog
 from .models import UserProfile
+from .services.ai_chatbot import get_bot_response
 
+
+# ---------------- AUTH ---------------- #
 
 def signup(request):
     if request.method == 'POST':
@@ -21,22 +26,19 @@ def signup(request):
 
         if form.is_valid():
             user = form.save()
-            
-            # Save user profile with role and region
+
             UserProfile.objects.create(
                 user=user,
                 role=role,
                 region=region
             )
-            
+
             return redirect('login')
     else:
         form = UserCreationForm()
 
     return render(request, 'signup.html', {'form': form})
 
-
-# ---------------- AUTH ---------------- #
 
 def login_view(request):
     if request.method == 'POST':
@@ -72,7 +74,6 @@ def profile(request):
 
 @login_required
 def dashboard(request):
-
     glucose_records = GlucoseRecord.objects.filter(user=request.user).order_by('-date')
     bp_records = BPRecord.objects.filter(user=request.user).order_by('-date')
 
@@ -84,11 +85,10 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
-# ---------------- GLUCOSE RECORD ---------------- #
+# ---------------- GLUCOSE ---------------- #
 
 @login_required
 def add_record(request):
-
     if request.method == 'POST':
 
         symptoms = request.POST.getlist('symptoms')
@@ -124,13 +124,11 @@ def add_record(request):
 
 @login_required
 def glucose_page(request):
-
     records = GlucoseRecord.objects.filter(user=request.user).order_by('-date', '-time')
 
     total_records = records.count()
 
     if total_records > 0:
-
         avg_glucose = sum(r.glucose_level for r in records) / total_records
         estimated_a1c = (avg_glucose + 46.7) / 28.7
 
@@ -138,9 +136,7 @@ def glucose_page(request):
         low_count = sum(1 for r in records if r.get_glucose_category() == 'low')
         normal_count = sum(1 for r in records if r.get_glucose_category() == 'normal')
         prediabetes_count = sum(1 for r in records if r.get_glucose_category() == 'prediabetes')
-
     else:
-
         avg_glucose = 0
         estimated_a1c = 0
         high_count = low_count = normal_count = prediabetes_count = 0
@@ -163,9 +159,7 @@ def glucose_page(request):
 
 @login_required
 def add_bp(request):
-
     if request.method == "POST":
-
         BPRecord.objects.create(
             user=request.user,
             systolic=request.POST.get('systolic'),
@@ -183,18 +177,14 @@ def add_bp(request):
 
 @login_required
 def bp_page(request):
-
     records = BPRecord.objects.filter(user=request.user).order_by('-date')
 
     total_records = records.count()
 
     if total_records > 0:
-
         avg_systolic = sum(r.systolic for r in records) / total_records
         avg_diastolic = sum(r.diastolic for r in records) / total_records
-
     else:
-
         avg_systolic = avg_diastolic = 0
 
     context = {
@@ -211,17 +201,14 @@ def bp_page(request):
 
 @login_required
 def reminder_settings(request):
-
     prefs, created = NotificationPreference.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-
         prefs.email_enabled = request.POST.get('email_enabled') == 'on'
         prefs.sms_enabled = request.POST.get('sms_enabled') == 'on'
         prefs.email_address = request.POST.get('email_address', '')
         prefs.phone_number = request.POST.get('phone_number', '')
-        prefs.carrier = request.POST.get('carrier', '') 
-
+        prefs.carrier = request.POST.get('carrier', '')
         prefs.save()
 
         messages.success(request, 'Notification preferences updated!')
@@ -242,22 +229,16 @@ def reminder_settings(request):
 
 @login_required
 def add_reminder(request):
-    """Add a new reminder"""
     if request.method == 'POST':
         try:
-            # Get start date
             start_date_str = request.POST.get('start_date')
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else date.today()
-            
-            # Get days of week (for weekly reminders)
+
             days_of_week = request.POST.get('days_of_week', '')
-            
-            # For one-time reminders, specific_date = start_date
+
             frequency = request.POST.get('frequency')
-            specific_date = None
-            if frequency == 'once':
-                specific_date = start_date
-            
+            specific_date = start_date if frequency == 'once' else None
+
             reminder = Reminder(
                 user=request.user,
                 reminder_type=request.POST.get('reminder_type'),
@@ -279,43 +260,74 @@ def add_reminder(request):
                 override_quiet_hours=False,
             )
             reminder.save()
-            
-            messages.success(request, '✅ Reminder created successfully!')
+
+            messages.success(request, 'Reminder created successfully!')
             return redirect('reminder_settings')
-            
+
         except Exception as e:
-            messages.error(request, f'❌ Error creating reminder: {str(e)}')
+            messages.error(request, f'Error creating reminder: {str(e)}')
             return redirect('reminder_settings')
-    
+
     return redirect('reminder_settings')
 
 
 @login_required
 def delete_reminder(request, reminder_id):
-
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
     reminder.delete()
-
     messages.success(request, 'Reminder deleted successfully!')
     return redirect('reminder_settings')
 
 
 @login_required
 def toggle_reminder(request, reminder_id):
-
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
-
     reminder.is_active = not reminder.is_active
     reminder.save()
-
     return redirect('reminder_settings')
 
 
+# ---------------- AI + EXTRA ---------------- #
+
+@login_required
+def ai_prediction(request):
+    return render(request, "ai_prediction.html")
+
+
+@login_required
+def admin_dashboard(request):
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'health_worker':
+        return redirect('dashboard')
+
+    context = {
+        'total_users': User.objects.count(),
+        'high_risk': GlucoseRecord.objects.filter(glucose_level__gt=250).count(),
+        'missed_medication': GlucoseRecord.objects.filter(medication_taken=False).count(),
+        'recent_alerts': NotificationLog.objects.all()[:10]
+    }
+
+    return render(request, 'admin_dashboard.html', context)
+
+
+def accessibility(request):
+    return render(request, "accessibility.html")
+
+
+def ai_assistant(request):
+    return render(request, "ai_assistant.html")
+
+
+@csrf_exempt
+def chatbot(request):
+    if request.method == "POST":
+        message = request.POST.get("message")
+        reply = get_bot_response(message)
+        return JsonResponse({"response": reply})
+    
 # ---------------- ALARMS ---------------- #
 
 @login_required
 def show_alarm(request, reminder_id):
-
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
 
     NotificationLog.objects.create(
@@ -332,7 +344,6 @@ def show_alarm(request, reminder_id):
 
 @login_required
 def dismiss_alarm(request, reminder_id):
-
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
 
     messages.success(request, f'Alarm dismissed for {reminder.title}')
@@ -341,7 +352,6 @@ def dismiss_alarm(request, reminder_id):
 
 @login_required
 def check_active_alarms(request):
-
     now = datetime.now()
 
     active = Reminder.objects.filter(
@@ -364,8 +374,6 @@ def check_active_alarms(request):
 
 @login_required
 def snooze_alarm(request, reminder_id):
-    """Snooze an alarm for 5 minutes"""
-
     reminder = get_object_or_404(Reminder, id=reminder_id, user=request.user)
 
     now = datetime.now()
@@ -389,57 +397,3 @@ def snooze_alarm(request, reminder_id):
     messages.info(request, f"Alarm snoozed until {snooze_time.strftime('%H:%M')}")
 
     return redirect('dashboard')
-
-
-# ---------------- AI DIABETES PREDICTION ---------------- #
-
-@login_required
-def ai_prediction(request):
-    return render(request, "ai_prediction.html")
-<<<<<<< naveena
-<<<<<<< HEAD
-=======
-
-
->>>>>>> main
-@login_required
-def admin_dashboard(request):
-
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.role != 'health_worker':
-        return redirect('dashboard')
-
-    total_users = User.objects.count()
-
-    high_risk = GlucoseRecord.objects.filter(glucose_level__gt=250).count()
-
-    missed_medication = GlucoseRecord.objects.filter(medication_taken=False).count()
-
-    recent_alerts = NotificationLog.objects.all()[:10]
-
-    context = {
-        'total_users': total_users,
-        'high_risk': high_risk,
-        'missed_medication': missed_medication,
-        'recent_alerts': recent_alerts
-    }
-
-    return render(request, 'admin_dashboard.html', context)
-=======
-
-def accessibility(request):
-    return render(request, "accessibility.html")
-
-def ai_assistant(request):
-    return render(request, "ai_assistant.html")
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .services.ai_chatbot import get_bot_response
-
-@csrf_exempt
-def chatbot(request):
-    if request.method == "POST":
-        message = request.POST.get("message")
-        reply = get_bot_response(message)
-        return JsonResponse({"response": reply})
->>>>>>> 889d29d (AI assistant)
