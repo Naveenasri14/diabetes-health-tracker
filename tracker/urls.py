@@ -1,3 +1,5 @@
+from django.contrib import admin
+from django.urls import path, include  # Make sure 'include' is here
 from django.urls import path
 from . import views
 
@@ -52,4 +54,5 @@ urlpatterns = [
     
     # Admin Dashboard
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    
 ]

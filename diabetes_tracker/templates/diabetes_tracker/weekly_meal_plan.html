@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Meal Plan - Diabetes Health Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+        }
+        h1 { color: white; margin-bottom: 30px; text-align: center; }
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .day-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .day-card:hover { transform: translateY(-5px); }
+        .day-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .day-header h3 { margin-bottom: 5px; }
+        .day-body { padding: 15px; }
+        .meal-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .meal-name { font-weight: 600; color: #333; }
+        .meal-calories { color: #667eea; font-weight: 500; float: right; }
+        .total { margin-top: 10px; padding-top: 10px; border-top: 2px solid #667eea; font-weight: bold; text-align: center; color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/diet-planner/" class="back-btn">← Back to Diet Planner</a>
+        <h1>📅 Weekly Meal Plan</h1>
+        
+        <div class="week-grid">
+            {% for week in weekly_plans %}
+            <div class="day-card">
+                <div class="day-header">
+                    <h3>{{ week.date|date:"l" }}</h3>
+                    <small>{{ week.date|date:"M j, Y" }}</small>
+                </div>
+                <div class="day-body">
+                    <div class="meal-row">
+                        <span class="meal-name">🌅 Breakfast</span>
+                        <span class="meal-calories">
+                            {% if week.plan.breakfast %}{{ week.plan.breakfast.calories }}{% else %}0{% endif %} kcal
+                        </span>
+                        <div style="font-size: 0.85rem; color: #666;">
+                            {% if week.plan.breakfast %}{{ week.plan.breakfast.name }}{% else %}Not planned{% endif %}
+                        </div>
+                    </div>
+                    <div class="meal-row">
+                        <span class="meal-name">☀️ Lunch</span>
+                        <span class="meal-calories">
+                            {% if week.plan.lunch %}{{ week.plan.lunch.calories }}{% else %}0{% endif %} kcal
+                        </span>
+                        <div style="font-size: 0.85rem; color: #666;">
+                            {% if week.plan.lunch %}{{ week.plan.lunch.name }}{% else %}Not planned{% endif %}
+                        </div>
+                    </div>
+                    <div class="meal-row">
+                        <span class="meal-name">🌙 Dinner</span>
+                        <span class="meal-calories">
+                            {% if week.plan.dinner %}{{ week.plan.dinner.calories }}{% else %}0{% endif %} kcal
+                        </span>
+                        <div style="font-size: 0.85rem; color: #666;">
+                            {% if week.plan.dinner %}{{ week.plan.dinner.name }}{% else %}Not planned{% endif %}
+                        </div>
+                    </div>
+                    <div class="meal-row">
+                        <span class="meal-name">🍎 Snacks</span>
+                        <span class="meal-calories">
+                            {% if week.plan.snacks %}{{ week.plan.snacks.calories }}{% else %}0{% endif %} kcal
+                        </span>
+                        <div style="font-size: 0.85rem; color: #666;">
+                            {% if week.plan.snacks %}{{ week.plan.snacks.name }}{% else %}Not planned{% endif %}
+                        </div>
+                    </div>
+                    <div class="total">
+                        Total: {{ week.plan.total_calories }} kcal
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
