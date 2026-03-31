@@ -355,29 +355,75 @@ def add_bp(request):
 
 @login_required
 def bp_page(request):
-
     records = BPRecord.objects.filter(user=request.user).order_by('-date')
-
+    
+    # Calculate statistics
     total_records = records.count()
-
+    
+    # Initialize variables
+    avg_systolic = 0
+    avg_diastolic = 0
+    avg_pulse = 0
+    monthly_count = 0
+    bp_status = 'unknown'
+    pulse_status = 'unknown'
+    chart_labels = []
+    systolic_data = []
+    diastolic_data = []
+    
     if total_records > 0:
-
         avg_systolic = sum(r.systolic for r in records) / total_records
         avg_diastolic = sum(r.diastolic for r in records) / total_records
-
-    else:
-
-        avg_systolic = avg_diastolic = 0
-
+        pulse_records = [r.pulse for r in records if r.pulse]
+        avg_pulse = sum(pulse_records) / len(pulse_records) if pulse_records else 0
+        
+        # Count readings this month
+        from datetime import datetime
+        current_month = datetime.now().month
+        monthly_count = records.filter(date__month=current_month).count()
+        
+        # Determine BP status
+        if avg_systolic < 120:
+            bp_status = 'normal'
+        elif avg_systolic < 130:
+            bp_status = 'elevated'
+        else:
+            bp_status = 'high'
+        
+        # Pulse status
+        if avg_pulse < 60:
+            pulse_status = 'low (athletic)'
+        elif avg_pulse < 100:
+            pulse_status = 'normal'
+        else:
+            pulse_status = 'elevated'
+        
+        # Prepare chart data (last 30 days)
+        from datetime import datetime, timedelta
+        thirty_days_ago = datetime.now().date() - timedelta(days=30)
+        recent_records = records.filter(date__gte=thirty_days_ago).order_by('date')
+        
+        for record in recent_records:
+            chart_labels.append(record.date.strftime('%m/%d'))
+            systolic_data.append(record.systolic)
+            diastolic_data.append(record.diastolic)
+    
+    import json
     context = {
         'bp_records': records,
         'avg_systolic': round(avg_systolic, 1),
         'avg_diastolic': round(avg_diastolic, 1),
-        'total_records': total_records
+        'avg_pulse': round(avg_pulse, 1),
+        'total_records': total_records,
+        'monthly_count': monthly_count,
+        'bp_status': bp_status,
+        'pulse_status': pulse_status,
+        'chart_labels': json.dumps(chart_labels),
+        'systolic_data': json.dumps(systolic_data),
+        'diastolic_data': json.dumps(diastolic_data),
+        'best_time': 'morning',
     }
-
     return render(request, 'bp.html', context)
-
 
 # ---------------- REMINDERS ---------------- #
 
