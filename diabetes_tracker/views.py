@@ -9,23 +9,7 @@ from .forms import DietLogForm, MealPlanForm
 import json
 
 
-@login_required
-def profile_setup(request):
-    """User profile setup view"""
-    if request.method == "POST":
-        UserProfile.objects.create(
-            user=request.user,
-            age=request.POST.get('age'),
-            gender=request.POST.get('gender'),
-            weight=request.POST.get('weight'),
-            height=request.POST.get('height'),
-            blood_group=request.POST.get('blood_group'),
-            diabetes_type=request.POST.get('diabetes_type'),
-            years_since_diagnosis=request.POST.get('years'),
-            family_history=True if request.POST.get('family_history') else False
-        )
-        return redirect('dashboard')
-    return render(request, "profile_setup.html")
+
 
 
 @login_required

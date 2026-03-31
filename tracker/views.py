@@ -13,6 +13,7 @@ import json
 from .models import GlucoseRecord, BPRecord, NotificationPreference, Reminder, NotificationLog
 from .models import UserProfile
 from .services.ai_chatbot import get_bot_response
+from tracker.models import Profile
 
 
 # ---------------- AUTH ---------------- #
@@ -63,13 +64,65 @@ def logout_view(request):
     return redirect('login')
 
 
-# ---------------- PROFILE ---------------- #
+
 
 @login_required
 def profile(request):
-    return render(request, 'profile.html')
-
-
+    """
+    View to handle user profile - GET (display) and POST (save)
+    """
+    # Get or create profile for the current user
+    # Change this line:
+    # profile, created = Profile.objects.get_or_create(user=request.user)
+    try:
+        profile = request.user.tracker_profile  # Changed from 'profile' to 'tracker_profile'
+    except:
+        # If profile doesn't exist, create a new one
+        profile = Profile.objects.create(user=request.user)
+    
+    if request.method == 'POST':
+        # Get form data
+        age = request.POST.get('age')
+        gender = request.POST.get('gender')
+        weight = request.POST.get('weight')
+        height = request.POST.get('height')
+        blood_group = request.POST.get('blood_group')
+        diabetes_type = request.POST.get('diabetes_type')
+        years = request.POST.get('years')
+        family_history = request.POST.get('family_history') == 'on'
+        
+        # Update profile fields
+        if age:
+            profile.age = int(age)
+        if gender:
+            profile.gender = gender
+        if weight:
+            profile.weight = float(weight)
+        if height:
+            profile.height = float(height)
+        if blood_group:
+            profile.blood_group = blood_group
+        if diabetes_type:
+            profile.diabetes_type = diabetes_type
+        if years:
+            profile.years_since_diagnosis = float(years)
+        
+        profile.family_history = family_history
+        
+        # Save to database
+        profile.save()
+        
+        # Add success message
+        messages.success(request, '✅ Profile saved successfully!')
+        
+        # Return to same page with updated data
+        return redirect('profile')
+    
+    # For GET request, display the profile
+    context = {
+        'profile': profile
+    }
+    return render(request, 'profile.html', context)
 # ---------------- DASHBOARD ---------------- #
 
 @login_required
@@ -397,3 +450,20 @@ def snooze_alarm(request, reminder_id):
     messages.info(request, f"Alarm snoozed until {snooze_time.strftime('%H:%M')}")
 
     return redirect('dashboard')
+@login_required
+def profile_setup(request):
+    """User profile setup view"""
+    if request.method == "POST":
+        UserProfile.objects.create(
+            user=request.user,
+            age=request.POST.get('age'),
+            gender=request.POST.get('gender'),
+            weight=request.POST.get('weight'),
+            height=request.POST.get('height'),
+            blood_group=request.POST.get('blood_group'),
+            diabetes_type=request.POST.get('diabetes_type'),
+            years_since_diagnosis=request.POST.get('years'),
+            family_history=True if request.POST.get('family_history') else False
+        )
+        return redirect('dashboard')
+    return render(request, "profile.html")
