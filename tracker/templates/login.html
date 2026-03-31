@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Health Hub Villages</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:      #0d9488;
+      --teal-dark: #0f766e;
+      --teal-light:#f0fdfa;
+      --red:       #ef4444;
+      --gray-100:  #f1f5f9;
+      --gray-200:  #e2e8f0;
+      --gray-400:  #94a3b8;
+      --gray-600:  #475569;
+      --gray-800:  #1e293b;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 44px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.18);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo .icon { font-size: 2.6rem; display: block; margin-bottom: 8px; }
+    .logo h1   { font-size: 1.45rem; font-weight: 700; color: var(--gray-800); }
+    .logo p    { font-size: .85rem; color: var(--gray-400); margin-top: 3px; }
+
+    .messages { margin-bottom: 16px; }
+    .msg {
+      padding: 10px 14px; border-radius: 8px;
+      font-size: .85rem; margin-bottom: 8px;
+    }
+    .msg.error   { background:#fef2f2; color:var(--red);  border-left:3px solid var(--red); }
+    .msg.success { background:#f0fdf4; color:#15803d;     border-left:3px solid #22c55e; }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: .95rem;
+      color: var(--gray-800);
+      background: var(--gray-100);
+      outline: none;
+      transition: border .2s, box-shadow .2s, background .2s;
+    }
+    input:focus {
+      border-color: var(--teal);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(13,148,136,.12);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--teal);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 4px;
+      letter-spacing: .02em;
+      transition: background .2s, transform .1s;
+    }
+    .btn-submit:hover  { background: var(--teal-dark); }
+    .btn-submit:active { transform: scale(.98); }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: .88rem;
+      color: var(--gray-600);
+    }
+    .footer-link a {
+      color: var(--teal);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .footer-link a:hover { text-decoration: underline; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+      color: var(--gray-400);
+      font-size: .8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gray-200);
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <span class="icon">🏥</span>
+    <h1>Health Hub Villages</h1>
+    <p>Diabetes Care Platform</p>
+  </div>
+
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if error_message %}
+  <div class="messages">
+    <div class="msg error">{{ error_message }}</div>
+  </div>
+  {% endif %}
+
+  <form method="POST" id="loginForm">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="Enter your username"
+        autocomplete="username"
+        required
+        autofocus
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Enter your password"
+        autocomplete="current-password"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn-submit">Log In →</button>
+  </form>
+
+  <div class="divider">or</div>
+
+  <div class="footer-link">
+    Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>
+  </div>
+</div>
+
+</body>
+</html>

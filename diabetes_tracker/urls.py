@@ -6,7 +6,4 @@ urlpatterns = [
 
     # connect tracker app
     path('', include('tracker.urls')),
-
-    # django login/logout
-    path('accounts/', include('django.contrib.auth.urls')),
 ]
