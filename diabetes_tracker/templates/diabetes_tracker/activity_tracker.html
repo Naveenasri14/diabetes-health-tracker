@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Tracker - Diabetes Health Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; margin: 10px 0; }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } }
+        .glass-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .glass-card:hover { transform: translateY(-5px); }
+        .glass-card h2 { margin-bottom: 20px; color: #333; }
+        .step-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .step-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .step-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        .water-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .water-btn {
+            background: linear-gradient(135deg, #e3f2fd, #bbdef5);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .water-btn:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #bbdef5, #90caf9);
+        }
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s;
+        }
+        .reminder-item:hover {
+            background: #f8f9fa;
+        }
+        .streak-badge {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            display: inline-block;
+            margin: 15px 0;
+        }
+        .chart {
+            margin-top: 20px;
+        }
+        .bar-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 35px;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: width 0.5s ease;
+        }
+        .progress-bar-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mt-2 { margin-top: 10px; }
+        .mt-3 { margin-top: 15px; }
+        select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .delete-link {
+            color: #ff6b6b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .delete-link:hover {
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/diet-planner/" class="back-btn">← Back to Diet Planner</a>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i>🚶</i>
+                <div class="stat-number" id="stepsDisplay">{{ activity.steps }}</div>
+                <p>Steps Today</p>
+            </div>
+            <div class="stat-card">
+                <i>💧</i>
+                <div class="stat-number" id="waterStatDisplay">{{ water.glasses }}/{{ water.target_glasses }}</div>
+                <p>Water Glasses</p>
+            </div>
+            <div class="stat-card">
+                <i>🔥</i>
+                <div class="stat-number">{{ activity.calories_burned }}</div>
+                <p>Calories Burned</p>
+            </div>
+            <div class="stat-card">
+                <i>🏆</i>
+                <div class="stat-number">{{ streak.current_streak }}</div>
+                <p>Day Streak</p>
+                <small>Longest: {{ streak.longest_streak }} days</small>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <!-- Step Tracker -->
+            <div class="glass-card">
+                <h2>🚶 Step Counter</h2>
+                <form method="post" action="/update-steps/" id="stepForm">
+                    {% csrf_token %}
+                    <div class="step-input">
+                        <input type="number" name="steps" id="stepInput" value="{{ activity.steps }}" placeholder="Enter steps">
+                        <button type="submit" class="btn-primary">Update Steps</button>
+                    </div>
+                </form>
+                <div class="streak-badge" id="streakMessage">
+                    {% if streak.current_streak >= 7 %}
+                        🔥 {{ streak.current_streak }} Day Streak! Amazing!
+                    {% elif streak.current_streak >= 3 %}
+                        ⭐ {{ streak.current_streak }} Day Streak! Keep going!
+                    {% else %}
+                        🚶 Start your walking streak today! (5000+ steps)
+                    {% endif %}
+                </div>
+                
+               <div class="chart">
+    <h3 style="margin-bottom: 15px;">📊 Last 7 Days</h3>
+    {% for day in last_7_days %}
+    <div style="margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: #555;">{{ day.date }}</span>
+            <span style="font-size: 0.85rem; color: #667eea; font-weight: 500;">{{ day.steps }} steps</span>
+        </div>
+        <div style="background: #e8eef5; border-radius: 12px; height: 36px; overflow: hidden; position: relative;">
+            <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {% widthratio day.steps 10000 100 %}%; border-radius: 12px; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;">
+                {% if day.steps > 0 %}
+                <span style="color: white; font-size: 0.75rem; font-weight: 500;">{{ day.steps }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+            </div>
+            
+            <!-- Water Tracker -->
+            <div class="glass-card">
+                <h2>💧 Water Intake</h2>
+                {% csrf_token %}
+                <div class="water-buttons">
+                    <button onclick="updateWater({{ water.glasses|add:1 }})" class="water-btn">💧 +1 Glass</button>
+                    <button onclick="updateWater({{ water.glasses|add:2 }})" class="water-btn">💧💧 +2 Glasses</button>
+                    <button onclick="updateWater({{ water.glasses|add:3 }})" class="water-btn">💧💧💧 +3 Glasses</button>
+                    <button onclick="updateWater({{ water.glasses|add:4 }})" class="water-btn">💧💧💧💧 +4 Glasses</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Set custom glasses:</label>
+                    <input type="range" id="waterRange" min="0" max="12" value="{{ water.glasses }}" onchange="updateWater(this.value)">
+                    <p style="margin-top: 10px;">Goal: {{ water.target_glasses }} glasses/day</p>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="progress-bar-container">
+                        <div id="waterProgress" class="progress-fill" style="width: {% widthratio water.glasses water.target_glasses 100 %}%;"></div>
+                    </div>
+                    <p id="waterMessage" class="text-center mt-2">
+                        {% if water.glasses >= water.target_glasses %}
+                            🎉 Goal achieved! Great job staying hydrated! 🎉
+                        {% elif water.glasses >= water.target_glasses|divisibleby:2 %}
+                            👍 Halfway there! Keep drinking!
+                        {% else %}
+                            💪 You can do it! Drink more water!
+                        {% endif %}
+                    </p>
+                    <p class="text-center mt-2"><strong id="waterDisplay">{{ water.glasses }}/{{ water.target_glasses }} glasses completed</strong></p>
+                </div>
+            </div>
+            
+            <!-- Exercise Reminders -->
+            <div class="glass-card">
+                <h2>⏰ Exercise Reminders</h2>
+                <form method="post" action="/add-exercise-reminder/">
+                    {% csrf_token %}
+                    <div class="step-input">
+                        <input type="time" name="reminder_time" required>
+                        <select name="days" multiple size="3">
+                            <option value="Mon">Monday</option>
+                            <option value="Tue">Tuesday</option>
+                            <option value="Wed">Wednesday</option>
+                            <option value="Thu">Thursday</option>
+                            <option value="Fri">Friday</option>
+                            <option value="Sat">Saturday</option>
+                            <option value="Sun">Sunday</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Add Reminder</button>
+                    </div>
+                    <small style="color:#666;">Hold Ctrl/Cmd to select multiple days</small>
+                </form>
+                
+                {% if reminders %}
+                    {% for reminder in reminders %}
+                    <div class="reminder-item">
+                        <span>⏰ {{ reminder.reminder_time }} - {{ reminder.days_of_week }}</span>
+                        <a href="/delete-reminder/{{ reminder.id }}/" class="delete-link" onclick="return confirm('Delete this reminder?')">Delete</a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:#999; text-align:center; padding:20px;">No reminders set. Add one above!</p>
+                {% endif %}
+            </div>
+            
+            <!-- Motivation -->
+            <div class="glass-card">
+                <h2>💪 Daily Motivation</h2>
+                <div style="text-align:center; padding:20px;">
+                    <div style="font-size:3rem;">🌟</div>
+                    <p style="margin-top:15px; font-size:1.1rem;">"Every step counts towards better health!"</p>
+                    <p style="margin-top:10px; color:#667eea; font-weight:500;">You're doing great! Keep moving!</p>
+                    <hr style="margin: 20px 0;">
+                    <div style="display: flex; justify-content: space-around;">
+                        <div>
+                            <div style="font-size:1.5rem;">🎯</div>
+                            <small>Today's Goal</small>
+                            <div><strong>10,000 steps</strong></div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.5rem;">💪</div>
+                            <small>Active Minutes</small>
+                            <div><strong>{{ activity.active_minutes }} min</strong></div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.5rem;">🔥</div>
+                            <small>Calories</small>
+                            <div><strong>{{ activity.calories_burned }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get CSRF token
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        function updateWater(glasses) {
+            // Make sure glasses is a number
+            glasses = parseInt(glasses);
+            if (isNaN(glasses)) glasses = 0;
+            if (glasses > 12) glasses = 12;
+            if (glasses < 0) glasses = 0;
+            
+            // Send AJAX request
+            fetch('/update-water/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'glasses=' + glasses
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the display
+                    const target = {{ water.target_glasses }};
+                    const percentage = (data.glasses / target) * 100;
+                    
+                    // Update progress bar
+                    document.getElementById('waterProgress').style.width = percentage + '%';
+                    
+                    // Update text display
+                    document.getElementById('waterDisplay').innerHTML = data.glasses + '/' + target + ' glasses completed';
+                    document.getElementById('waterStatDisplay').innerHTML = data.glasses + '/' + target;
+                    
+                    // Update range slider
+                    document.getElementById('waterRange').value = data.glasses;
+                    
+                    // Update message
+                    const messageEl = document.getElementById('waterMessage');
+                    if (data.glasses >= target) {
+                        messageEl.innerHTML = '🎉 Goal achieved! Great job staying hydrated! 🎉';
+                    } else if (data.glasses >= target/2) {
+                        messageEl.innerHTML = '👍 Halfway there! Keep drinking!';
+                    } else {
+                        messageEl.innerHTML = '💪 You can do it! Drink more water!';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Fallback: reload page
+                location.reload();
+            });
+        }
+        
+        // Also update the step form to use AJAX (optional)
+        document.getElementById('stepForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const steps = document.getElementById('stepInput').value;
+            
+            fetch('/update-steps/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'steps=' + steps
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('stepsDisplay').innerHTML = data.steps;
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                // Fallback: submit normally
+                this.submit();
+            });
+        });
+    </script>
+</body>
+</html>

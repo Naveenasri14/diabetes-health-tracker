@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Diet Log - Diabetes Health Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Back Button */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+        
+        /* Main Form Card */
+        .form-card {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Header */
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .form-header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .form-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        /* Form Body */
+        .form-body {
+            padding: 30px;
+        }
+        
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* Help Text */
+        .help-text {
+            display: block;
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        /* Error Messages */
+        .errorlist {
+            list-style: none;
+            background: #fee;
+            color: #c33;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .errorlist li {
+            margin: 0;
+        }
+        
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-submit {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cancel:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        /* Meal Type Indicator */
+        .meal-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        /* Quick Tip */
+        .quick-tip {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .quick-tip i {
+            font-size: 1.5rem;
+        }
+        
+        .quick-tip p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .quick-tip strong {
+            color: #667eea;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .form-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-body {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+        
+        /* Animation for form fields */
+        .form-group {
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+        
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Select dropdown custom styling */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+        
+        /* Radio/Checkbox styling */
+        input[type="checkbox"], input[type="radio"] {
+            width: auto;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/diet-planner/" class="back-btn">
+            ← Back to Diet Planner
+        </a>
+        
+        <div class="form-card">
+            <div class="form-header">
+                <h1>🍽️ Add Diet Log</h1>
+                <p>Track what you eat to manage your diabetes better</p>
+            </div>
+            
+            <div class="form-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            <i>
+                                {% if field.name == 'diet_suggestion' %}📚
+                                {% elif field.name == 'meal_name' %}🍲
+                                {% elif field.name == 'portion_size' %}⚖️
+                                {% elif field.name == 'calories_consumed' %}🔥
+                                {% elif field.name == 'notes' %}📝
+                                {% else %}✨
+                                {% endif %}
+                            </i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span style="color: #e74c3c;">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        {{ field }}
+                        
+                        {% if field.help_text %}
+                            <small class="help-text">{{ field.help_text }}</small>
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                            <ul class="errorlist">
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="quick-tip">
+                        <i>💡</i>
+                        <p>
+                            <strong>Quick Tip:</strong> For accurate tracking, measure your portion sizes. 
+                            A fist-sized portion is about 1 cup, and a palm-sized portion is about 3-4 oz of protein.
+                        </p>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="btn-submit">
+                            ✓ Save Diet Log
+                        </button>
+                        <a href="/diet-planner/" class="btn-cancel">
+                            ✗ Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Auto-calculate calories when meal selected (optional enhancement) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dietSuggestion = document.querySelector('#id_diet_suggestion');
+            const caloriesField = document.querySelector('#id_calories_consumed');
+            
+            if (dietSuggestion && caloriesField) {
+                dietSuggestion.addEventListener('change', function() {
+                    const selectedOption = dietSuggestion.options[dietSuggestion.selectedIndex];
+                    const mealName = selectedOption.text;
+                    
+                    // You can add AJAX here to fetch calories from server
+                    // For now, just a placeholder for future enhancement
+                    if (selectedOption.value) {
+                        // Optional: fetch calories from server
+                        // fetch(`/get-meal-calories/?id=${selectedOption.value}`)
+                        //     .then(response => response.json())
+                        //     .then(data => caloriesField.value = data.calories);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,19 +2,22 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Q
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from datetime import datetime, date, timedelta
 import json
 import re
 
 from .models import (
     GlucoseRecord, BPRecord, NotificationPreference,
-    Reminder, NotificationLog, UserProfile, CaregiverLink
+    Reminder, NotificationLog, UserProfile, CaregiverLink,
+    CaregiverNote, CaregiverMessage, PatientAlert,
 )
-from django.contrib.auth.models import User
+from .services.ai_chatbot import get_bot_response
 
 
 # ──────────────────────────────────────────
@@ -34,13 +37,12 @@ def is_valid_email(email):
 
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form   = UserCreationForm(request.POST)
         role   = request.POST.get('role', '').strip()
         region = request.POST.get('region', '').strip()
         email  = request.POST.get('email', '').strip()
         phone  = request.POST.get('phone', '').strip()
 
-        # Validate custom fields
         custom_errors = []
         if not role:
             custom_errors.append("Please select a role.")
@@ -55,9 +57,7 @@ def signup(request):
         elif not is_valid_indian_phone(phone):
             custom_errors.append("Enter a valid 10-digit Indian mobile number starting with 6-9.")
 
-        form_valid = form.is_valid()
-
-        # Collect unique form errors
+        form_valid  = form.is_valid()
         form_errors = []
         if not form_valid:
             seen = set()
@@ -74,7 +74,6 @@ def signup(request):
                 messages.error(request, e)
             return render(request, 'signup.html', {'form': form})
 
-        # Save user & profile
         user = form.save()
         profile_obj = UserProfile.objects.create(
             user=user,
@@ -84,8 +83,7 @@ def signup(request):
             phone=phone,
         )
 
-        # FIX 4: If registering as caregiver, auto-accept any pending links
-        # where a patient added this phone/email before the caregiver had an account
+        # Auto-link caregiver: accept any pending links that already reference this phone/email
         if role == 'caregiver':
             pending = CaregiverLink.objects.filter(
                 caregiver_profile__isnull=True,
@@ -97,18 +95,14 @@ def signup(request):
                 link.status = 'accepted'
                 link.save()
             if count:
-                messages.info(
-                    request,
-                    f"You have been linked to {count} patient(s) who already added you!"
-                )
+                messages.info(request,
+                    f"You have been linked to {count} patient(s) who already added you!")
 
-        # FIX 3: Single success message only
         messages.success(request, "Account created! Please log in.")
         return redirect('login_view')
 
     else:
         form = UserCreationForm()
-
     return render(request, 'signup.html', {'form': form})
 
 
@@ -119,7 +113,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('/dashboard/')
+            return redirect('redirect_dashboard')
         messages.error(request, "Invalid username or password.")
     return render(request, 'login.html')
 
@@ -135,39 +129,29 @@ def logout_view(request):
 
 @login_required
 def redirect_dashboard(request):
-    print("🔥 redirect_dashboard called")
     try:
         profile = request.user.userprofile
     except UserProfile.DoesNotExist:
-        print("❌ No profile found")
         messages.error(request, "Profile not found.")
         return redirect('login_view')
-    
-    print("👉 ROLE:", profile.role)
 
-    # ── PATIENT ──
     if profile.role == 'patient':
         is_first_login = (
             not CaregiverLink.objects.filter(patient=profile).exists() and
             not GlucoseRecord.objects.filter(user=request.user).exists()
         )
-        
-        print("👉 is_first_login:", is_first_login)
-
         if is_first_login and not profile.has_skipped_caregiver:
             return redirect('add_caregiver')
-
-        # ✅ FIX: send to patient dashboard (NOT generic dashboard)
-        print("➡ Redirecting to patient_dashboard")
         return redirect('patient_dashboard')
 
-    # ── CAREGIVER ──
     elif profile.role == 'caregiver':
-        print("➡ Redirecting to caregiver_dashboard")
         return redirect('caregiver_dashboard')
 
-    # fallback
-    return redirect('patient_dashboard')
+    elif profile.role == 'health_worker':
+        return redirect('health_worker_dashboard')
+
+    return redirect('dashboard')
+
 
 # ──────────────────────────────────────────
 # DASHBOARDS
@@ -176,32 +160,51 @@ def redirect_dashboard(request):
 @login_required
 def dashboard(request):
     glucose_records = GlucoseRecord.objects.filter(user=request.user).order_by('-date')
-    bp_records = BPRecord.objects.filter(user=request.user).order_by('-date')
+    bp_records      = BPRecord.objects.filter(user=request.user).order_by('-date')
     return render(request, "dashboard.html", {
         'glucose_records': glucose_records,
-        'bp_records': bp_records,
+        'bp_records':      bp_records,
     })
 
 
 @login_required
 def patient_dashboard(request):
-    profile = request.user.userprofile
+    profile        = request.user.userprofile
     recent_glucose = GlucoseRecord.objects.filter(
         user=request.user).order_by('-date', '-time')[:5]
-    my_caregivers = CaregiverLink.objects.filter(patient=profile)
-    # FIX 5: health workers in same region shown to patient
+    my_caregivers  = CaregiverLink.objects.filter(patient=profile)
+
+    # Health workers in same region
+    region_workers = UserProfile.objects.filter(
+        role='health_worker',
+        region__iexact=profile.region
+    ).select_related('user')
+
+    # Unread messages from caregivers
+    unread_messages = CaregiverMessage.objects.filter(
+        patient=profile, is_read=False).order_by('-sent_at')
 
     return render(request, 'patient_dashboard.html', {
-        'profile':        profile,
-        'recent_glucose': recent_glucose,
-        'my_caregivers':  my_caregivers,
+        'profile':          profile,
+        'recent_glucose':   recent_glucose,
+        'my_caregivers':    my_caregivers,
+        'region_workers':   region_workers,
+        'unread_messages':  unread_messages,
     })
 
 
 @login_required
 def caregiver_dashboard(request):
-    """FIX 4: Caregiver sees all linked patients and their latest records."""
+    """
+    Full caregiver dashboard:
+    - Smart alerts (high/low/emergency glucose, inactivity)
+    - Per-patient notes, unread message counts
+    - Color-coded risk cards
+    - Region/location-based patient grouping context
+    """
+    from django.utils import timezone as tz
     profile = request.user.userprofile
+    today   = tz.now().date()
 
     accepted_links = CaregiverLink.objects.filter(
         caregiver_profile=profile,
@@ -209,31 +212,118 @@ def caregiver_dashboard(request):
     ).select_related('patient__user')
 
     patients_data = []
-    for link in accepted_links:
-        p = link.patient
-        recent_glucose = GlucoseRecord.objects.filter(
-            user=p.user).order_by('-date', '-time')[:3]
-        recent_bp = BPRecord.objects.filter(
-            user=p.user).order_by('-date')[:2]
-        latest = recent_glucose.first()
-        risk = 'high'   if latest and latest.glucose_level > 250 else \
-               'low'    if latest and latest.glucose_level < 70  else \
-               'normal' if latest else 'no_data'
+    alerts        = []
 
-        patients_data.append({
+    for link in accepted_links:
+        p              = link.patient
+        recent_glucose = GlucoseRecord.objects.filter(
+            user=p.user).order_by('-date', '-time')[:5]
+        recent_bp      = BPRecord.objects.filter(
+            user=p.user).order_by('-date')[:2]
+        latest         = recent_glucose.first()
+
+        # Risk level (feature #1 / #5 – smart alerts + emergency flag)
+        if latest:
+            g = latest.glucose_level
+            if g > 300:    risk = 'emergency'
+            elif g > 250:  risk = 'high'
+            elif g < 70:   risk = 'low'
+            elif g <= 140: risk = 'normal'
+            else:          risk = 'prediabetes'
+        else:
+            risk = 'no_data'
+
+        # Inactivity detection (feature #1)
+        inactive      = False
+        inactive_days = 0
+        hours_since   = None
+        if latest:
+            inactive_days = (today - latest.date).days
+            inactive      = inactive_days >= 2
+            # "Last updated X hours ago"
+            last_dt     = datetime.combine(latest.date, latest.time)
+            hours_since = int((datetime.now() - last_dt).total_seconds() // 3600)
+
+        readings_today = GlucoseRecord.objects.filter(
+            user=p.user, date=today).count()
+
+        # Notes by this caregiver for this patient (feature #8)
+        notes = CaregiverNote.objects.filter(
+            caregiver=profile, patient=p).order_by('-created_at')
+
+        # Unread messages count (feature #2)
+        unread_msgs = CaregiverMessage.objects.filter(
+            caregiver=profile, patient=p, is_read=False).count()
+
+        # Last BP for health summary (feature #10)
+        last_bp = recent_bp.first()
+
+        entry = {
             'link':           link,
             'profile':        p,
             'recent_glucose': recent_glucose,
             'recent_bp':      recent_bp,
+            'last_bp':        last_bp,
             'risk':           risk,
             'latest_reading': latest,
+            'hours_since':    hours_since,
+            'inactive':       inactive,
+            'inactive_days':  inactive_days,
+            'readings_today': readings_today,
+            'notes':          notes,
+            'unread_msgs':    unread_msgs,
+        }
+        patients_data.append(entry)
+        if risk in ('high', 'low', 'emergency') or inactive:
+            alerts.append(entry)
+
+    high_risk_count = sum(1 for p in patients_data if p['risk'] in ('high', 'emergency'))
+    inactive_count  = sum(1 for p in patients_data if p['inactive'])
+
+    return render(request, 'caregiver_dashboard.html', {
+        'profile':          profile,
+        'patients_data':    patients_data,
+        'alerts':           alerts,
+        'high_risk_count':  high_risk_count,
+        'inactive_count':   inactive_count,
+        'message_types':    CaregiverMessage.MESSAGE_TYPES,
+    })
+
+
+@login_required
+def health_worker_dashboard(request):
+    """Health worker sees all patients in same region (feature #6)."""
+    profile = request.user.userprofile
+
+    patients = UserProfile.objects.filter(
+        role='patient',
+        region__iexact=profile.region
+    ).select_related('user')
+
+    patient_summaries = []
+    for p in patients:
+        latest = GlucoseRecord.objects.filter(
+            user=p.user).order_by('-date', '-time').first()
+        risk = 'high'   if latest and latest.glucose_level > 250 else \
+               'low'    if latest and latest.glucose_level < 70  else \
+               'normal' if latest else 'no_data'
+        missed     = GlucoseRecord.objects.filter(user=p.user, medication_taken=False).count()
+        caregivers = CaregiverLink.objects.filter(patient=p, status='accepted').count()
+
+        patient_summaries.append({
+            'profile':         p,
+            'latest_reading':  latest,
+            'risk':            risk,
+            'missed_meds':     missed,
+            'caregiver_count': caregivers,
         })
 
-    alerts = [p for p in patients_data if p['risk'] in ['high', 'low']]
-    return render(request, 'caregiver_dashboard.html', {
-        'profile':       profile,
-        'patients_data': patients_data,
-        'alerts': alerts,
+    return render(request, 'health_worker_dashboard.html', {
+        'profile':           profile,
+        'patient_summaries': patient_summaries,
+        'total_patients':    patients.count(),
+        'high_risk_count':   sum(1 for p in patient_summaries if p['risk'] == 'high'),
+        'missed_med_count':  sum(1 for p in patient_summaries if p['missed_meds'] > 0),
     })
 
 
@@ -243,9 +333,6 @@ def caregiver_dashboard(request):
 
 @login_required
 def add_caregiver(request):
-    # 🔥 Auto-skip for non-patient roles
-    if request.user.userprofile.role != 'patient':
-        return redirect('redirect_dashboard')
     profile = request.user.userprofile
     if profile.role != 'patient':
         return redirect('redirect_dashboard')
@@ -254,7 +341,6 @@ def add_caregiver(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        print("👉 ACTION:", action)
 
         if action == 'skip':
             profile.has_skipped_caregiver = True
@@ -272,7 +358,7 @@ def add_caregiver(request):
             phones = request.POST.getlist('caregiver_phone[]')
             emails = request.POST.getlist('caregiver_email[]')
 
-            added = 0
+            added  = 0
             errors = []
 
             for name, phone, email in zip(names, phones, emails):
@@ -287,22 +373,18 @@ def add_caregiver(request):
                 if not name:
                     row_errors.append("Caregiver name is required.")
                 if not phone or not is_valid_indian_phone(phone):
-                    row_errors.append(
-                        f"'{phone}' is not a valid 10-digit Indian mobile number.")
+                    row_errors.append(f"'{phone}' is not a valid 10-digit Indian mobile number.")
                 if not email or not is_valid_email(email):
-                    row_errors.append(
-                        f"'{email}' is not a valid email address.")
+                    row_errors.append(f"'{email}' is not a valid email address.")
 
                 if row_errors:
                     errors.extend(row_errors)
                     continue
 
-                if CaregiverLink.objects.filter(
-                        patient=profile, caregiver_phone=phone).exists():
+                if CaregiverLink.objects.filter(patient=profile, caregiver_phone=phone).exists():
                     errors.append(f"Caregiver with number {phone} already added.")
                     continue
 
-                # Auto-link if caregiver already has account
                 existing_cg = UserProfile.objects.filter(
                     role='caregiver'
                 ).filter(Q(phone=phone) | Q(email=email)).first()
@@ -320,17 +402,113 @@ def add_caregiver(request):
             for e in errors:
                 messages.error(request, e)
             if added:
-                messages.success(
-                    request,
-                    f"{added} caregiver(s) added successfully!"
-                )
+                messages.success(request, f"{added} caregiver(s) added successfully!")
             if errors:
                 return redirect('add_caregiver')
             return redirect('patient_dashboard')
 
-    return render(request, 'caregiver.html', {
+    return render(request, 'add_caregiver.html', {
         'profile':        profile,
         'existing_links': existing_links,
+    })
+
+
+@login_required
+def manage_links(request):
+    return render(request, 'add_caregiver.html')
+
+
+# ──────────────────────────────────────────
+# CAREGIVER ACTIONS  (feature #2, #8, #9)
+# ──────────────────────────────────────────
+
+@login_required
+def caregiver_add_note(request, patient_username):
+    """Caregiver adds or edits a note for a patient (feature #8)."""
+    caregiver_profile = request.user.userprofile
+    patient_user      = get_object_or_404(User, username=patient_username)
+    patient_profile   = patient_user.userprofile
+
+    if not CaregiverLink.objects.filter(
+        caregiver_profile=caregiver_profile,
+        patient=patient_profile, status='accepted'
+    ).exists():
+        messages.error(request, "You are not linked to this patient.")
+        return redirect('caregiver_dashboard')
+
+    if request.method == 'POST':
+        note_text = request.POST.get('note', '').strip()
+        note_id   = request.POST.get('note_id', '')
+        if not note_text:
+            messages.error(request, "Note cannot be empty.")
+            return redirect('caregiver_dashboard')
+        if note_id:
+            note = get_object_or_404(CaregiverNote, id=note_id, caregiver=caregiver_profile)
+            note.note = note_text
+            note.save()
+            messages.success(request, "Note updated.")
+        else:
+            CaregiverNote.objects.create(
+                caregiver=caregiver_profile,
+                patient=patient_profile,
+                note=note_text,
+            )
+            messages.success(request, "Note saved.")
+    return redirect('caregiver_dashboard')
+
+
+@login_required
+def caregiver_delete_note(request, note_id):
+    note = get_object_or_404(CaregiverNote, id=note_id, caregiver=request.user.userprofile)
+    note.delete()
+    messages.success(request, "Note deleted.")
+    return redirect('caregiver_dashboard')
+
+
+@login_required
+def caregiver_send_message(request, patient_username):
+    """Caregiver sends a quick alert message to a patient (feature #2)."""
+    caregiver_profile = request.user.userprofile
+    patient_user      = get_object_or_404(User, username=patient_username)
+    patient_profile   = patient_user.userprofile
+
+    if not CaregiverLink.objects.filter(
+        caregiver_profile=caregiver_profile,
+        patient=patient_profile, status='accepted'
+    ).exists():
+        messages.error(request, "You are not linked to this patient.")
+        return redirect('caregiver_dashboard')
+
+    if request.method == 'POST':
+        msg_type    = request.POST.get('message_type', 'check_glucose')
+        custom_text = request.POST.get('custom_text', '').strip()
+        CaregiverMessage.objects.create(
+            caregiver=caregiver_profile,
+            patient=patient_profile,
+            message_type=msg_type,
+            custom_text=custom_text if msg_type == 'custom' else '',
+        )
+        label = dict(CaregiverMessage.MESSAGE_TYPES).get(msg_type, msg_type)
+        NotificationLog.objects.create(
+            user=patient_user,
+            notification_type='in_app',
+            title=f"Message from your caregiver {request.user.username}",
+            message=custom_text if msg_type == 'custom' else label,
+            status='sent',
+        )
+        messages.success(request, f"Message sent to {patient_username}.")
+    return redirect('caregiver_dashboard')
+
+
+@login_required
+def patient_messages(request):
+    """Patient views messages sent by caregivers."""
+    profile = request.user.userprofile
+    msgs    = CaregiverMessage.objects.filter(patient=profile).order_by('-sent_at')[:30]
+    CaregiverMessage.objects.filter(patient=profile, is_read=False).update(is_read=True)
+    return render(request, 'patient_messages.html', {
+        'messages_list': msgs,
+        'profile':       profile,
     })
 
 
@@ -341,9 +519,10 @@ def add_caregiver(request):
 @login_required
 def profile(request):
     user_profile = request.user.userprofile
+    is_patient   = user_profile.role == 'patient'
     if request.method == 'POST':
-        new_phone  = request.POST.get('phone', '').strip()
-        new_email  = request.POST.get('email', '').strip()
+        new_phone  = request.POST.get('phone',  '').strip()
+        new_email  = request.POST.get('email',  '').strip()
         new_region = request.POST.get('region', '').strip()
         errs = []
         if new_phone and not is_valid_indian_phone(new_phone):
@@ -360,7 +539,10 @@ def profile(request):
             user_profile.save()
             messages.success(request, "Profile updated!")
         return redirect('profile')
-    return render(request, 'profile.html', {'profile': user_profile})
+    return render(request, 'profile.html', {
+        'profile':    user_profile,
+        'is_patient': is_patient,
+    })
 
 
 # ──────────────────────────────────────────
@@ -391,8 +573,8 @@ def add_record(request):
         return redirect('glucose')
 
     return render(request, 'add_record.html', {
-        'today_date':    date.today().isoformat(),
-        'current_time':  datetime.now().strftime('%H:%M'),
+        'today_date':   date.today().isoformat(),
+        'current_time': datetime.now().strftime('%H:%M'),
     })
 
 
@@ -401,6 +583,7 @@ def glucose_page(request):
     records = GlucoseRecord.objects.filter(
         user=request.user).order_by('-date', '-time')
     total = records.count()
+
     if total:
         avg_glucose       = sum(r.glucose_level for r in records) / total
         estimated_a1c     = round((avg_glucose + 46.7) / 28.7, 1)
@@ -441,14 +624,13 @@ def add_bp(request):
         )
         messages.success(request, 'BP record added!')
         return redirect('bp')
-    return render(request, "add_bp.html", {
-        'today_date': date.today().isoformat()})
+    return render(request, "add_bp.html", {'today_date': date.today().isoformat()})
 
 
 @login_required
 def bp_page(request):
-    records = BPRecord.objects.filter(user=request.user).order_by('-date')
-    total   = records.count()
+    records      = BPRecord.objects.filter(user=request.user).order_by('-date')
+    total        = records.count()
     avg_systolic = avg_diastolic = 0
     if total:
         avg_systolic  = round(sum(r.systolic  for r in records) / total, 1)
@@ -468,11 +650,13 @@ def bp_page(request):
 @login_required
 def reminder_settings(request):
     prefs, _ = NotificationPreference.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
         prefs.email_enabled = request.POST.get('email_enabled') == 'on'
         prefs.sms_enabled   = request.POST.get('sms_enabled') == 'on'
         prefs.email_address = request.POST.get('email_address', '')
         prefs.phone_number  = request.POST.get('phone_number', '')
+        prefs.carrier       = request.POST.get('carrier', '')
         prefs.save()
         messages.success(request, 'Preferences updated!')
         return redirect('reminder_settings')
@@ -490,17 +674,34 @@ def reminder_settings(request):
 @login_required
 def add_reminder(request):
     if request.method == 'POST':
-        Reminder.objects.create(
-            user=request.user,
-            reminder_type=request.POST.get('reminder_type'),
-            title=request.POST.get('title'),
-            description=request.POST.get('description', ''),
-            frequency=request.POST.get('frequency'),
-            reminder_time=request.POST.get('reminder_time'),
-            start_date=request.POST.get('start_date') or date.today(),
-            is_active=True,
-        )
-        messages.success(request, 'Reminder created!')
+        try:
+            start_date_str = request.POST.get('start_date')
+            start_date_val = (
+                datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                if start_date_str else date.today()
+            )
+            frequency     = request.POST.get('frequency')
+            specific_date = start_date_val if frequency == 'once' else None
+
+            Reminder.objects.create(
+                user=request.user,
+                reminder_type=request.POST.get('reminder_type'),
+                title=request.POST.get('title'),
+                description=request.POST.get('description', ''),
+                frequency=frequency,
+                reminder_time=request.POST.get('reminder_time'),
+                start_date=start_date_val,
+                specific_date=specific_date,
+                days_of_week=request.POST.get('days_of_week', ''),
+                medication_name=request.POST.get('medication_name', ''),
+                medication_dosage=request.POST.get('medication_dosage', ''),
+                is_active=True,
+                notify_in_app=True,
+                notify_email=request.POST.get('notify_email') == 'on',
+            )
+            messages.success(request, 'Reminder created!')
+        except Exception as e:
+            messages.error(request, f'Error creating reminder: {str(e)}')
     return redirect('reminder_settings')
 
 
@@ -565,7 +766,7 @@ def snooze_alarm(request, reminder_id):
 
 @login_required
 def check_active_alarms(request):
-    now = datetime.now()
+    now    = datetime.now()
     active = Reminder.objects.filter(
         user=request.user, is_active=True,
         start_date__lte=now.date(),
@@ -573,9 +774,9 @@ def check_active_alarms(request):
     ).first()
     if active:
         return JsonResponse({
-            'has_alarm': True,
+            'has_alarm':   True,
             'reminder_id': active.id,
-            'title': active.title,
+            'title':       active.title,
         })
     return JsonResponse({'has_alarm': False})
 
@@ -590,7 +791,7 @@ def ai_prediction(request):
 
 
 # ──────────────────────────────────────────
-# HEALTH WORKER ADMIN DASHBOARD
+# HEALTH WORKER / ADMIN DASHBOARD
 # ──────────────────────────────────────────
 
 @login_required
@@ -600,7 +801,7 @@ def admin_dashboard(request):
     except UserProfile.DoesNotExist:
         return redirect('dashboard')
 
-    if profile.role not in ['caregiver']:
+    if profile.role not in ('health_worker', 'caregiver'):
         messages.error(request, "Access denied.")
         return redirect('dashboard')
 
@@ -622,6 +823,22 @@ def admin_dashboard(request):
     })
 
 
-@login_required
-def manage_links(request):
-    return render(request, 'add_caregiver.html')
+# ──────────────────────────────────────────
+# EXTRA PAGES
+# ──────────────────────────────────────────
+
+def accessibility(request):
+    return render(request, "accessibility.html")
+
+
+def ai_assistant(request):
+    return render(request, "ai_assistant.html")
+
+
+@csrf_exempt
+def chatbot(request):
+    if request.method == "POST":
+        message = request.POST.get("message")
+        reply   = get_bot_response(message)
+        return JsonResponse({"response": reply})
+    return JsonResponse({"error": "POST required"}, status=405)

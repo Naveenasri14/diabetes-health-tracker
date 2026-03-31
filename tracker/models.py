@@ -5,18 +5,17 @@ from django.utils import timezone
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
-        ('patient', 'Patient'),
-        ('caregiver', 'Caregiver'),
+        ('patient',        'Patient'),
+        ('caregiver',      'Caregiver'),
+        ('health_worker',  'Health Worker'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
+    user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    role   = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
     region = models.CharField(max_length=100, blank=True, default='')
-    phone = models.CharField(max_length=15, blank=True, default='')
-    email = models.EmailField(blank=True, default='')
-    has_skipped_caregiver = models.BooleanField(default=False)
-
-
+    phone  = models.CharField(max_length=15, blank=True, default='')
+    email  = models.EmailField(blank=True, default='')
+    has_skipped_caregiver = models.BooleanField(default=False)   # from old models
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
@@ -28,12 +27,14 @@ class UserProfile(models.Model):
     def is_caregiver(self):
         return self.role == 'caregiver'
 
+    def is_health_worker(self):
+        return self.role == 'health_worker'
+
 
 class CaregiverLink(models.Model):
     """
     Stores caregiver details entered by a patient.
     Caregivers do NOT need a system account — identified by name/phone/email.
-    They receive a request and can accept or reject it.
     """
     STATUS_CHOICES = [
         ('pending',  'Pending'),
@@ -45,13 +46,10 @@ class CaregiverLink(models.Model):
         UserProfile, on_delete=models.CASCADE,
         related_name='caregiver_links'
     )
-
-    # Caregiver info — no system account required
     caregiver_name  = models.CharField(max_length=150)
     caregiver_phone = models.CharField(max_length=15)
     caregiver_email = models.EmailField()
 
-    # If the caregiver later registers, optionally link their profile
     caregiver_profile = models.ForeignKey(
         UserProfile, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -66,49 +64,50 @@ class CaregiverLink(models.Model):
 
 
 class GlucoseRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='glucose_records')
+    user          = models.ForeignKey(User, on_delete=models.CASCADE, related_name='glucose_records')
     glucose_level = models.FloatField(verbose_name="Glucose Level (mg/dL)")
-    date = models.DateField(default=timezone.now)
-    time = models.TimeField(default=timezone.now)
+    date          = models.DateField(default=timezone.now)
+    time          = models.TimeField(default=timezone.now)
 
     READING_TYPE_CHOICES = [
-        ('fasting', 'Fasting (before breakfast)'),
+        ('fasting',     'Fasting (before breakfast)'),
         ('before_meal', 'Before Meal'),
-        ('after_meal', 'After Meal'),
-        ('random', 'Random'),
-        ('bedtime', 'Bedtime'),
-        ('night', 'Night (2-3 AM)'),
+        ('after_meal',  'After Meal'),
+        ('random',      'Random'),
+        ('bedtime',     'Bedtime'),
+        ('night',       'Night (2-3 AM)'),
     ]
     reading_type = models.CharField(max_length=20, choices=READING_TYPE_CHOICES, default='random')
 
     MEAL_TYPE_CHOICES = [
         ('breakfast', 'Breakfast'),
-        ('lunch', 'Lunch'),
-        ('dinner', 'Dinner'),
-        ('snack', 'Snack'),
-        ('none', 'No Meal'),
+        ('lunch',     'Lunch'),
+        ('dinner',    'Dinner'),
+        ('snack',     'Snack'),
+        ('none',      'No Meal'),
     ]
-    meal_type = models.CharField(max_length=20, choices=MEAL_TYPE_CHOICES, blank=True, null=True)
+    meal_type  = models.CharField(max_length=20, choices=MEAL_TYPE_CHOICES, blank=True, null=True)
     food_notes = models.TextField(blank=True)
+
     medication_taken = models.BooleanField(default=False)
-    medicine_name = models.CharField(max_length=200, blank=True)
-    insulin_dose = models.FloatField(blank=True, null=True)
+    medicine_name    = models.CharField(max_length=200, blank=True)
+    insulin_dose     = models.FloatField(blank=True, null=True)
 
     ACTIVITY_TYPE_CHOICES = [
-        ('walking', 'Walking'),
-        ('running', 'Running/Jogging'),
-        ('yoga', 'Yoga'),
-        ('gym', 'Gym/Weight Training'),
-        ('cycling', 'Cycling'),
+        ('walking',  'Walking'),
+        ('running',  'Running/Jogging'),
+        ('yoga',     'Yoga'),
+        ('gym',      'Gym/Weight Training'),
+        ('cycling',  'Cycling'),
         ('swimming', 'Swimming'),
-        ('other', 'Other'),
+        ('other',    'Other'),
     ]
-    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPE_CHOICES, blank=True, null=True)
+    activity_type     = models.CharField(max_length=20, choices=ACTIVITY_TYPE_CHOICES, blank=True, null=True)
     activity_duration = models.IntegerField(blank=True, null=True)
-    symptoms = models.CharField(max_length=200, blank=True)
-    notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    symptoms          = models.CharField(max_length=200, blank=True)
+    notes             = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    updated_at        = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-date', '-time']
@@ -121,32 +120,24 @@ class GlucoseRecord(models.Model):
 
     def get_glucose_category(self):
         if self.reading_type == 'fasting':
-            if self.glucose_level < 70:
-                return 'low'
-            elif self.glucose_level <= 100:
-                return 'normal'
-            elif self.glucose_level <= 125:
-                return 'prediabetes'
-            else:
-                return 'high'
+            if self.glucose_level < 70:    return 'low'
+            elif self.glucose_level <= 100: return 'normal'
+            elif self.glucose_level <= 125: return 'prediabetes'
+            else:                           return 'high'
         else:
-            if self.glucose_level < 70:
-                return 'low'
-            elif self.glucose_level <= 140:
-                return 'normal'
-            elif self.glucose_level <= 199:
-                return 'prediabetes'
-            else:
-                return 'high'
+            if self.glucose_level < 70:    return 'low'
+            elif self.glucose_level <= 140: return 'normal'
+            elif self.glucose_level <= 199: return 'prediabetes'
+            else:                           return 'high'
 
 
 class BPRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bp_records')
-    systolic = models.IntegerField()
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bp_records')
+    systolic  = models.IntegerField()
     diastolic = models.IntegerField()
-    pulse = models.IntegerField(blank=True, null=True)
-    date = models.DateField(default=timezone.now)
-    notes = models.TextField(blank=True)
+    pulse     = models.IntegerField(blank=True, null=True)
+    date      = models.DateField(default=timezone.now)
+    notes     = models.TextField(blank=True)
 
     class Meta:
         ordering = ['-date']
@@ -156,16 +147,26 @@ class BPRecord(models.Model):
 
 
 class NotificationPreference(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_prefs')
-    in_app_enabled = models.BooleanField(default=True)
-    email_enabled = models.BooleanField(default=False)
-    sms_enabled = models.BooleanField(default=False)
-    phone_number = models.CharField(max_length=20, blank=True)
-    email_address = models.EmailField(blank=True)
+    CARRIER_CHOICES = [
+        ('airtel', 'Airtel'),
+        ('jio',    'Jio'),
+        ('vi',     'Vi (Vodafone Idea)'),
+        ('bsnl',   'BSNL'),
+        ('other',  'Other'),
+    ]
+
+    user             = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_prefs')
+    in_app_enabled   = models.BooleanField(default=True)
+    email_enabled    = models.BooleanField(default=False)
+    sms_enabled      = models.BooleanField(default=False)
+    phone_number     = models.CharField(max_length=20, blank=True)
+    carrier          = models.CharField(max_length=20, choices=CARRIER_CHOICES, blank=True)  # from old
+    whatsapp_number  = models.CharField(max_length=20, blank=True)                           # from old
+    email_address    = models.EmailField(blank=True)
     quiet_hours_start = models.TimeField(null=True, blank=True)
-    quiet_hours_end = models.TimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    quiet_hours_end   = models.TimeField(null=True, blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    updated_at        = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Notification Preferences for {self.user.username}"
@@ -173,37 +174,37 @@ class NotificationPreference(models.Model):
 
 class Reminder(models.Model):
     REMINDER_TYPES = [
-        ('glucose_test', 'Blood Glucose Test'),
-        ('medication', 'Take Medication'),
-        ('insulin', 'Insulin Injection'),
-        ('meal', 'Meal Time'),
-        ('exercise', 'Physical Activity'),
+        ('glucose_test',       'Blood Glucose Test'),
+        ('medication',         'Take Medication'),
+        ('insulin',            'Insulin Injection'),
+        ('meal',               'Meal Time'),
+        ('exercise',           'Physical Activity'),
         ('doctor_appointment', 'Doctor Appointment'),
-        ('refill', 'Prescription Refill'),
+        ('refill',             'Prescription Refill'),
     ]
     FREQUENCY_CHOICES = [
-        ('once', 'One Time'),
-        ('daily', 'Daily'),
+        ('once',   'One Time'),
+        ('daily',  'Daily'),
         ('weekly', 'Weekly'),
         ('custom', 'Custom'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reminders')
-    reminder_type = models.CharField(max_length=20, choices=REMINDER_TYPES)
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, default='daily')
-    reminder_time = models.TimeField()
-    days_of_week = models.CharField(max_length=50, blank=True)
-    specific_date = models.DateField(null=True, blank=True)
-    start_date = models.DateField(default=timezone.now)
-    medication_name = models.CharField(max_length=200, blank=True)
+    user              = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reminders')
+    reminder_type     = models.CharField(max_length=20, choices=REMINDER_TYPES)
+    title             = models.CharField(max_length=200)
+    description       = models.TextField(blank=True)
+    frequency         = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, default='daily')
+    reminder_time     = models.TimeField()
+    days_of_week      = models.CharField(max_length=50, blank=True)
+    specific_date     = models.DateField(null=True, blank=True)
+    start_date        = models.DateField(default=timezone.now)
+    medication_name   = models.CharField(max_length=200, blank=True)
     medication_dosage = models.CharField(max_length=100, blank=True)
-    is_active = models.BooleanField(default=True)
-    notify_in_app = models.BooleanField(default=True)
-    notify_email = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_active         = models.BooleanField(default=True)
+    notify_in_app     = models.BooleanField(default=True)
+    notify_email      = models.BooleanField(default=False)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    updated_at        = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['reminder_time']
@@ -214,22 +215,122 @@ class Reminder(models.Model):
 
 class NotificationLog(models.Model):
     STATUS_CHOICES = [
-        ('sent', 'Sent'),
-        ('failed', 'Failed'),
+        ('sent',    'Sent'),
+        ('failed',  'Failed'),
         ('pending', 'Pending'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    reminder = models.ForeignKey(Reminder, on_delete=models.SET_NULL, null=True, blank=True)
+    user              = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    reminder          = models.ForeignKey(Reminder, on_delete=models.SET_NULL, null=True, blank=True)
     notification_type = models.CharField(max_length=20)
-    title = models.CharField(max_length=200)
-    message = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    error_message = models.TextField(blank=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
+    title             = models.CharField(max_length=200)
+    message           = models.TextField()
+    status            = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    error_message     = models.TextField(blank=True)
+    sent_at           = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-sent_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.notification_type} - {self.status}"
+
+
+# ──────────────────────────────────────────
+# CAREGIVER NOTES  (new models)
+# ──────────────────────────────────────────
+
+class CaregiverNote(models.Model):
+    """Caregiver writes notes about a patient (visible to caregiver only)."""
+    caregiver = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE,
+        related_name='notes_written'
+    )
+    patient = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE,
+        related_name='caregiver_notes'
+    )
+    note       = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Note by {self.caregiver.user.username} for {self.patient.user.username}"
+
+
+# ──────────────────────────────────────────
+# CAREGIVER → PATIENT ALERTS / MESSAGES  (new models)
+# ──────────────────────────────────────────
+
+class PatientAlert(models.Model):
+    """
+    In-app alert sent FROM caregiver TO patient.
+    Patient sees this as a notification on their dashboard.
+    """
+    ALERT_TYPE_CHOICES = [
+        ('check_sugar',   '🩸 Please check your blood sugar'),
+        ('take_medicine', '💊 Please take your medicine'),
+        ('drink_water',   '💧 Please drink water'),
+        ('call_me',       '📞 Please call me'),
+        ('see_doctor',    '🏥 Please visit a doctor'),
+        ('emergency',     '🚨 Emergency – contact me immediately'),
+        ('custom',        '✏️ Custom message'),
+    ]
+    READ_STATUS = [
+        ('unread', 'Unread'),
+        ('read',   'Read'),
+    ]
+
+    sender   = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_alerts')
+    receiver = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='received_alerts')
+    alert_type     = models.CharField(max_length=20, choices=ALERT_TYPE_CHOICES)
+    custom_message = models.TextField(blank=True)
+    status         = models.CharField(max_length=10, choices=READ_STATUS, default='unread')
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def get_message(self):
+        if self.alert_type == 'custom':
+            return self.custom_message
+        return dict(self.ALERT_TYPE_CHOICES).get(self.alert_type, '')
+
+    def __str__(self):
+        return f"Alert from {self.sender.user.username} to {self.receiver.user.username}"
+
+
+class CaregiverMessage(models.Model):
+    """
+    A quick message/alert sent by caregiver to patient.
+    Shows up in the patient's notification feed.
+    """
+    MESSAGE_TYPES = [
+        ('check_glucose', '🩸 Please check your glucose'),
+        ('take_medicine', '💊 Please take your medicine'),
+        ('drink_water',   '💧 Please drink water'),
+        ('rest',          '🛏 Please rest'),
+        ('see_doctor',    '🏥 Please see a doctor soon'),
+        ('custom',        '📝 Custom message'),
+    ]
+
+    caregiver    = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='messages_sent')
+    patient      = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='caregiver_messages')
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPES, default='check_glucose')
+    custom_text  = models.TextField(blank=True)
+    is_read      = models.BooleanField(default=False)
+    sent_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def get_text(self):
+        if self.message_type == 'custom':
+            return self.custom_text
+        return dict(self.MESSAGE_TYPES).get(self.message_type, self.message_type)
+
+    def __str__(self):
+        return f"{self.caregiver.user.username} → {self.patient.user.username}: {self.message_type}"
