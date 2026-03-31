@@ -78,11 +78,11 @@ WSGI_APPLICATION = 'diabetes_tracker.wsgi.application'
 DATABASES = {
  'default': {
   'ENGINE': 'django.db.backends.postgresql',
-  'NAME': 'health_hub',
+  'NAME': 'diabetes_db',
   'USER': 'postgres',
-  'PASSWORD': 'pythonmegaexpert',
+  'PASSWORD': 'postgre123',
   'HOST': 'localhost',
-  'PORT': '5432',
+  'PORT': '5433',
  }
 }
 # Password validation
